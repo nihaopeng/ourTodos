@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="image">
+    <file>task.png</file>
+  </qresource>
+  <qresource prefix="qss"/>
+</RCC>

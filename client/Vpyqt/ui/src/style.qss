@@ -1,0 +1,35 @@
+QPushButton {{
+    {QPushButton}
+}}
+QPushButton:hover {{
+    {QPushButtonHover}
+}}
+QToolButton{{
+    {QToolButton}
+}}
+QToolButton:hover{{
+    {QToolButtonHover}
+}}
+
+QPushButton#registerBtn,
+QPushButton#customerLoginBtn,
+QPushButton#loginConfirmBtn{{
+    padding:5px;
+}}
+
+QPushButton[type="userRankBtn"]{{
+    padding:5px;
+}}
+
+QPushButton#todoFinishedBtn
+QPushButton#fileUploadBtn
+QPushButton#todoDeleteBtn {{
+    color: black;            /* 黑色字体 */
+    font-size: 14px;         /* 字体大小 */
+    font-weight: bold;       /* 加粗 */
+    min-height: 36px;        /* 最小高度 */
+}}
+
+*{{
+    {QFont}
+}}
