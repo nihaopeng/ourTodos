@@ -10,7 +10,10 @@ userViewBp = Blueprint("userView",__name__)
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if "email" not in session:
+        data = request.get_json()
+        email = data.get("email")
+        # print(session.get("email"),email)
+        if session.get("email")!=email:
             return jsonify({"code": 401, "msg": "Unauthorized"}), 401
         return f(*args, **kwargs)
     return decorated
@@ -56,9 +59,9 @@ def regist_view():
 def get_user_score_view():
     data = request.get_json()
     email = data.get("email")
-    user = query_db("SELECT score FROM users WHERE email=?", (email,), one=True)
-    if user:
-        return jsonify({"code": 200, "score": user[0]})
+    score = query_db("SELECT score FROM users WHERE email=?", (email,), one=True)
+    if score:
+        return jsonify({"code": 200, "score": score})
     return jsonify({"code": 404, "msg": "user not found"})
 
 @userViewBp.route("/get_scores", methods=["GET"])

@@ -1,10 +1,21 @@
 # ========== 待办事项接口 ==========
+import uuid
 from flask import jsonify, request,Blueprint
 
-from core.dbOp import query_db
+from core.dbOp import connect, query_db
 from core.userView import login_required
 
 todoViewbp = Blueprint('todoView',__name__)
+
+@todoViewbp.route("/get_todos", methods=["POST"])
+@login_required
+def get_todos_view():
+    data = request.get_json()
+    email = data.get("email")
+
+    todos = query_db("SELECT * FROM todos WHERE email=?",
+             (email,))
+    return jsonify({"code": 200, "msg": "ok", "todos":todos})
 
 @todoViewbp.route("/add_todo", methods=["POST"])
 @login_required
@@ -13,13 +24,22 @@ def add_todo_view():
     name = data.get("todoName")
     desc = data.get("todoDescription")
     ddl = data.get("ddl")
-    score = data.get("score", 0)
+    score = 1 #TODO:大模型生成
     email = data.get("email")
 
-    query_db("INSERT INTO todos (content, describe, ddl, score, email) VALUES (?,?,?,?,?)",
-             (name, desc, ddl, score, email))
-    return jsonify({"code": 200, "msg": "ok"})
-
+    conn = connect()
+    cur = conn.cursor()
+    try:
+        cur.execute("INSERT INTO todos (content, describe, ddl, score,status, email) VALUES (?,?,?,?,?,?)",
+             (name, desc, ddl, score,"True", email))
+        new_id = cur.lastrowid
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"code": 200, "msg": "ok", "todoUid":new_id})
+    except Exception as e:
+        return jsonify({"code": 402, "msg": str(e)})
+    
 
 @todoViewbp.route("/del_todo", methods=["POST"])
 @login_required
@@ -36,20 +56,49 @@ def del_todo_view():
 def todo_complete_view():
     data = request.get_json()
     todo_id = data.get("todo_id")
+    email = data.get("email")
     # 这里只是简单标记完成，可以考虑加文件上传验证逻辑
-    query_db("UPDATE todos SET score=score+10 WHERE todoid=?", (todo_id,))
+    query_db("UPDATE todos SET status=? WHERE todoid=?", ("False",todo_id,))
+    todoScore = query_db("SELECT score FROM todos WHERE todoid=?",(todo_id,),one=True)
+    userScore = query_db("SELECT score FROM users WHERE email=?",(email,),one=True)
+    query_db("UPDATE users SET score=? where email=?",(userScore[0]+todoScore[0],email,))
+    return jsonify({"code": 200, "msg": "ok"})
+
+@todoViewbp.route("/get_steps", methods=["POST"])
+@login_required
+def get_steps_view():
+    data = request.get_json()
+    todo_id = data.get("todo_id")
+    steps = query_db("SELECT * FROM steps WHERE todoid=?",
+                 (todo_id,))
+    return jsonify({"code": 200, "msg": "ok","steps":steps})
+
+@todoViewbp.route("/step_add", methods=["POST"])
+@login_required
+def step_add_view():
+    data = request.get_json()
+    todo_id = data.get("todo_id")
+    stepName = data.get("stepName")
+    stepUid = str(uuid.uuid4())
+    query_db("INSERT INTO steps (stepUid,stepName, status, todoid) VALUES (?,?,?,?)",
+                 (stepUid,stepName, "True", todo_id,))
+    return jsonify({"code": 200, "msg": "ok","stepUid":stepUid})
+
+@todoViewbp.route("/step_del", methods=["POST"])
+@login_required
+def step_del_view():
+    data = request.get_json()
+    stepUid = data.get("stepUid")
+    query_db("DELETE FROM steps where stepUid=?",
+                 (stepUid,))
     return jsonify({"code": 200, "msg": "ok"})
 
 @todoViewbp.route("/step_change", methods=["POST"])
 @login_required
 def step_change_view():
     data = request.get_json()
-    todo_id = data.get("todo_id")
-    steps = data.get("steps", [])
-
-    for step in steps:
-        step_name = step["stepName"]
-        status = step["status"]
-        query_db("INSERT INTO steps (stepName, status, todoid) VALUES (?,?,?)",
-                 (step_name, status, todo_id))
+    stepUid = data.get("stepUid")
+    status = data.get("status")
+    query_db("UPDATE steps SET status= where stepUid=?",
+                 (status,stepUid,))
     return jsonify({"code": 200, "msg": "ok"})

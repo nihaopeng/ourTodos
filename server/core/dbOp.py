@@ -25,13 +25,15 @@ def init_db():
       describe   TEXT,
       ddl        TEXT,
       score      INTEGER DEFAULT 0,
+      status     TEXT,
       email TEXT REFERENCES users(email) ON DELETE CASCADE
     );""")
 
     # steps（带外键，级联删除）
     c.execute("""
     CREATE TABLE IF NOT EXISTS steps(
-      stepid   INTEGER PRIMARY KEY AUTOINCREMENT,
+      id   INTEGER PRIMARY KEY AUTOINCREMENT,
+      stepUid TEXT,
       stepName TEXT,
       status   TEXT,
       todoid   INTEGER NOT NULL,
@@ -49,10 +51,13 @@ def connect():
     return conn
 
 def query_db(sql, args=(), one=False):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute(sql, args)
-    rows = cur.fetchall()
-    conn.commit()
-    conn.close()
-    return (rows[0] if rows else None) if one else rows
+    try:
+        conn = connect()
+        cur = conn.cursor()
+        cur.execute(sql, args)
+        rows = cur.fetchall()
+        conn.commit()
+        conn.close()
+        return (rows[0] if rows else None) if one else rows
+    except Exception as e:
+        raise e
