@@ -1,30 +1,38 @@
 
 from PySide6.QtWidgets import (
-    QWidget,QPushButton
+    QWidget,QCheckBox,QPushButton,QHBoxLayout,QMessageBox
 )
-from backend.LLMCaller import LLMCaller
-from backend.provider import deepseek
+from core.coach import CoachManager, Step
 from uipy.coachForm import Ui_Form as CoachFormUI
 from uipy.loadingForm import Ui_Form as LoadingFormUI
-from PySide6.QtCore import QObject, QThread, Signal
 
-class LLMWorker(QObject):
-    chunk_signal = Signal(str)   # 每次接收到的分块
-    start_signal = Signal()
-    finished = Signal()          # 完成信号
+class StepCheckBox(QCheckBox):
+    def __init__(self,step:Step,parent=None):
+        super().__init__(step.stepName,parent)
+        self.step = step
 
-    def __init__(self, llmcaller, query):
-        super().__init__()
-        self.llmcaller = llmcaller
-        self.query = query
+class StepWidget(QWidget):
+    def __init__(self,stepCheckBox:StepCheckBox,parent):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)  # 去掉边距
 
-    def run(self):
-        fulltext = ""
-        for chunk in self.llmcaller.stream(self.query):
-            fulltext += chunk
-            self.start_signal.emit()
-            self.chunk_signal.emit(fulltext)  # 把最新文本发给UI
-        self.finished.emit()
+        self.stepCheckBox = stepCheckBox
+        self.delete_btn = QPushButton("❌", self)
+        self.delete_btn.setFixedSize(24, 24)
+
+        layout.addWidget(self.stepCheckBox)
+        layout.addWidget(self.delete_btn)
+
+        # 点击删除按钮时，删除自己
+        self.delete_btn.clicked.connect(self.delete_self)
+    
+    def delete_self(self):
+        # 从父布局移除并销毁自己
+        parent_layout = self.parentWidget().layout()
+        if parent_layout:
+            parent_layout.removeWidget(self)
+        self.deleteLater()
 
 class CoachPage(QWidget):
     """登录页面"""
@@ -33,74 +41,31 @@ class CoachPage(QWidget):
         self.parent_window = parent
         if self.parent_window is None:
             raise ValueError("LoginPage 必须有一个父窗口")
-        
+        self.coachManager = CoachManager()
         # 设置UI
         self.ui = CoachFormUI()
         self.ui.setupUi(self)
         self.loadingUi = LoadingFormUI(self)
 
         # 连接信号与槽
-        self.ui.back2homeBtn.clicked.connect(self.go_to_home)
-        self.ui.callCoachBtn.clicked.connect(self.start_coaching)
-
-        # 逻辑处理
-        self.LLMCaller = LLMCaller()  # 假设你有一个 LLMCaller 类来处理模型调用
-        self.LLMCaller.register_model("deepseek", deepseek.handler_factory)
+        self.ui.back2homeBtn.clicked.connect(self.gotoHome)
+        self.ui.callCoachBtn.clicked.connect(self.startCoaching)
+        self.coachManager.startSignal.connect(self.loadingUi.hide)# 开始生成内容，关闭加载动画
+        self.coachManager.stepSignal.connect(self.updateText)
+        self.coachManager.errorSignal.connect(lambda v:QMessageBox.information(self,"错误",v))
     
-    def go_to_home(self):
+    def gotoHome(self):
         """跳转到注册页面"""
         # print("跳转到注册页面")
         self.parent_window.switch_to_page("todoList", "left")
 
-    def start_coaching(self):
+    def startCoaching(self):
         task = self.ui.taskLineEdit.text()
-        if not task.strip():
-            return
-        
-        TEMPLATE = """
-        现在有一个用户的任务，但是处于某些原因，用户没有动力完成这个任务。
-        你需要充当一个教练，根据用户现在所处的状态，帮助用户完成这个任务。
-        请将任务分解为多个步骤
-        每个步骤只需要一个序号加一句话,只输出步骤
-        注意重点是如何启动这个任务，而不是如何完成这个任务，比如：我说我现在躺在床上玩手机，想去自习室学习
-        你可以提出
-        1、起身，离开床铺
-        2、穿鞋
-        3、带上学习用品
-        4、前往自习室
-        可以细致一些，不要太宽泛。
-
-        任务如下：
-        <task>
-        {task}
-        </task>
-        """.format(task=task)
-
-        # 清空旧内容
-        self.ui.textBrowser.clear()
-        #加载动画
+        self.coachManager.genStep(task)
         self.loadingUi.show()
 
-        # 创建 worker + 线程
-        self.thread = QThread()
-        self.worker = LLMWorker(self.LLMCaller, TEMPLATE)
-        self.worker.moveToThread(self.thread)
-
-        # 连接信号
-        self.thread.started.connect(self.worker.run)
-        self.worker.chunk_signal.connect(self.update_text)
-        self.worker.start_signal.connect(self.start_gen)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-
-        # 启动线程
-        self.thread.start()
-
-    def update_text(self, text):
+    def updateText(self, step:Step):
         """实时更新到 textBrowser"""
-        self.ui.textBrowser.setText(text)
-
-    def start_gen(self):
-        # 开始生成，关闭加载动画
-        self.loadingUi.hide()
+        stepCheckBox = StepCheckBox(step,self)
+        stepWidget = StepWidget(stepCheckBox,self)
+        self.ui.verticalLayout_2.insertWidget(self.ui.verticalLayout_2.count()-1,stepWidget)

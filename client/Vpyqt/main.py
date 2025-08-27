@@ -2,15 +2,16 @@ import ctypes
 from ctypes import windll, wintypes
 import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout
+    QApplication, QMainWindow, QWidget, QVBoxLayout,QSystemTrayIcon, QMenu,QMessageBox
 )
 from PySide6.QtCore import (
-    Qt,QRect
+    Qt,QRect,QSharedMemory
 )
-from PySide6.QtGui import QColor,QPainter, QRegion, QPainterPath
-from PySide6.QtGui import QIcon, QPainter, QAction
-from PySide6.QtWidgets import QSystemTrayIcon, QMenu
-from backend.config import getConfig
+from PySide6.QtGui import (
+    QColor,QPainter, QRegion, QPainterPath,QIcon, QPainter, QAction
+)
+from core.config import getConfig
+from core.updater import applyUpdate
 from stackWidget import SlideStackedWidget
 from pages.login import LoginPage
 from pages.register import RegisterPage
@@ -220,8 +221,16 @@ class MainWindow(QMainWindow):
         ctypes.windll.user32.keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0)
         self.show()
 
+APP_KEY = "ourTodosKey"  # 全局唯一标识
+
 if __name__ == "__main__":
+    applyUpdate(__file__)
+    shared_mem = QSharedMemory(APP_KEY)
     app = QApplication(sys.argv)
+    # 重复打开检查
+    if not shared_mem.create(1):
+        QMessageBox.information(None, "消息", "ourTodos已打开,查看托盘图标")
+        sys.exit(0)
     # 应用样式
     app.setStyle("Fusion")
     # 创建并显示主窗口

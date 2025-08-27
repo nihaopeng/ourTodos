@@ -36,7 +36,7 @@ class LoginPage(QWidget):
         # 在实际应用中，这里会有身份验证逻辑
         if False:
             # 假设登录成功，跳转到待办事项页面
-            from backend.config import getConfig, setConfig
+            from core.config import getConfig, setConfig
             config = getConfig()
             config["USER"]["USERNAME"] = "admin"
             config["USER"]["PASSWORD"] = "admin123"
@@ -52,9 +52,9 @@ class LoginPage(QWidget):
     
     def customLogin(self):
         """跳转到客户登录页面"""
-        from backend.config import getConfig, setConfig
+        from core.config import getConfig, setConfig
         config = getConfig()
-        config["USER"]["USERNAME"] = "customer"
+        config["USER"]["USERNAME"] = ""
         setConfig(config)
         # 登录后注册页面，动态加载内容
         self.parent_window.register_page("todoList", TodoListPage(self.parent_window))

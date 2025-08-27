@@ -1,11 +1,9 @@
 
-import sys
 from PySide6.QtWidgets import (
     QWidget,QColorDialog,QMessageBox
 )
-from PySide6.QtCore import QTimer
+from core.settings import SettingsManager
 from uipy.settingsForm import Ui_Form as SettingsFormUI
-from backend.config import setConfig, getConfig
 
 class SettingsPage(QWidget):
     """设置页面"""
@@ -14,6 +12,8 @@ class SettingsPage(QWidget):
         self.parent_window = parent
         self.ui = SettingsFormUI()
         self.ui.setupUi(self)
+
+        self.settingsManager = SettingsManager()
 
         # 设置内容
         self.initSettings()
@@ -42,27 +42,17 @@ class SettingsPage(QWidget):
         username = self.ui.usernameLineEdit.text()
         password = self.ui.passwordLineEdit.text()
         profile = self.ui.profileTextEdit.toPlainText()
-
-        if not username or not password:
-            QMessageBox.warning(self, "输入错误", "所有字段都不能为空！")
-            return
-
-        # 这里可以添加保存逻辑，比如保存到配置文件或数据库
-        config = getConfig()
-        config["USER"]["PERSONALPROFILE"] = profile
-        setConfig(config)
-        # TODO:保存用户信息到远端
-        QMessageBox.information(self, "保存成功", "设置已保存！")
+        if self.settingsManager.saveUserinfoSettings(username,password,profile):
+            QMessageBox.information(self, "保存成功", "设置已保存！")
+        else:
+            QMessageBox.information(self, "保存失败", "未知错误")
     
     def saveRemoteSettings(self):
         remoteUrl = self.ui.remoteUrlLineEdit.text()
         if not remoteUrl:
             QMessageBox.warning(self, "输入错误", "所有字段都不能为空！")
             return
-        
-        config = getConfig()
-        config["REMOTE"]["URL"] = remoteUrl
-        setConfig(config)
+        self.settingsManager.saveRemoteSettings(remoteUrl)
         QMessageBox.information(self, "保存成功", "设置已保存！")
 
     def saveModelSettings(self):
@@ -75,41 +65,24 @@ class SettingsPage(QWidget):
         if not provider or not url or not model or not api_key or not genScorePrompt:
             QMessageBox.warning(self, "输入错误", "所有字段都不能为空！")
             return
-        # 这里可以添加保存逻辑，比如保存到配置文件或数据库
-        config = getConfig()
-        config["LLM"]["PROVIDER"] = provider
-        config["LLM"]["URL"] = url
-        config["LLM"]["MODEL_NAME"] = model
-        config["LLM"]["API_KEY"] = api_key
-        config["LLM"]["genScorePrompt"] = genScorePrompt
-        setConfig(config)
+        self.settingsManager.saveModelSettings(provider,url,model,api_key,genScorePrompt)
         QMessageBox.information(self, "保存成功", "模型设置已保存！")
 
     def setColor(self, compo:str):
         color = QColorDialog.getColor()
-        config = getConfig()
         if not color.isValid():
             QMessageBox.information(self, "错误", "无效颜色！")
             return
-        if compo == "btn":
-            config["THEME"]["BTNCOLOR"] = color.name()
-        elif compo == "btnHover":
-            config["THEME"]["BTNHOVERCOLOR"] = color.name()
-        elif compo == "bg":
-            config["THEME"]["BGCOLOR"] = color.name()
-        elif compo == "font":
-            config["THEME"]["FONTCOLOR"] = color.name()
-        else:
-            QMessageBox.information(self, "错误", "未知错误")
-        setConfig(config)
-        QMessageBox.information(self, "成功", "设置成功，将重新登录以生效设置")
+        self.settingsManager.saveTheme(compo,color.name())
+        QMessageBox.information(self, "成功", "设置成功，将重新登录以生效设置,可以重启软件以清除缓存")
         self.logout()
 
     def initSettings(self):
         # 设置内容
-        config = getConfig()
+        config = self.settingsManager.getSettings()
         self.ui.usernameLineEdit.setText(config.get("USER", {}).get("USERNAME", ""))
         self.ui.passwordLineEdit.setText(config.get("USER", {}).get("PASSWORD", ""))
+        self.ui.profileTextEdit.setText(config.get("USER", {}).get("PERSONALPROFILE", ""))
         self.ui.remoteUrlLineEdit.setText(config.get("REMOTE", {}).get("URL", ""))
         self.ui.providerLineEdit.setText(config.get("LLM", {}).get("PROVIDER", ""))
         self.ui.urlLineEdit.setText(config.get("LLM", {}).get("URL", ""))

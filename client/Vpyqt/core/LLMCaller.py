@@ -1,4 +1,4 @@
-from backend.config import getConfig
+from core.config import getConfig
 
 class LLMCaller:
     def __init__(self):
@@ -21,7 +21,7 @@ class LLMCaller:
         
 if __name__ == "__main__":
     llm_caller = LLMCaller()
-    from backend.provider import deepseek
+    from core.provider import deepseek
     llm_caller.register_model("deepseek", deepseek.handler_factory)
     # Example usage
     for response in llm_caller.stream("Hello, how are you?"):

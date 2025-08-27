@@ -3,7 +3,7 @@
 import requests
 import json
 
-from backend.config import getConfig
+from core.config import getConfig
 
 def handler_factory():
     def handler(query: str):
@@ -28,8 +28,7 @@ def handler_factory():
                 stream=True
             )
             if response.status_code != 200:
-                print(f"[DeepSeek Error] {response.status_code} {response.text}")
-                return f"[DeepSeek Error] {response.status_code} {response.text}"
+                raise(f"[DeepSeek Error] {response.status_code} {response.text}")
             for line in response.iter_lines():
                 # print(line.decode("utf-8"))
                 if line and line.startswith(b"data: "):
@@ -42,7 +41,7 @@ def handler_factory():
                     # print(f"message: {message}")
                     yield message
         except Exception as e:
-            print(f"[OpenAI Error] {str(e)}")
+            # print(f"[OpenAI Error] {str(e)}")
             yield f"[OpenAI Error] {str(e)}"
 
     return handler

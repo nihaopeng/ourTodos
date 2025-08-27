@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QStackedWidget
 from PySide6.QtCore import QPropertyAnimation, QPoint, QEasingCurve, QParallelAnimationGroup
 
-from backend.config import getConfig
+from core.config import getConfig
 
 class SlideStackedWidget(QStackedWidget):
     """带滑动动画的堆叠窗口控件 - 修复残影问题"""
@@ -88,7 +88,6 @@ class SlideStackedWidget(QStackedWidget):
         config = getConfig()
         btnColor = config["THEME"]["BTNCOLOR"]
         btnHoverColor = config["THEME"]["BTNHOVERCOLOR"]
-        bgColor = config["THEME"]["BGCOLOR"]
         fontColor = config["THEME"]["FONTCOLOR"]
         QPushButtonQss=f"""
             border: 1px solid black;
