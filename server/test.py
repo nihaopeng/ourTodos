@@ -22,6 +22,16 @@ def test_login(email,password):
     r = req.post(f"{BASE}/login", json=data)
     print("登录:", r.json())
 
+def test_update_username_and_password(email,newUsername,newPassword):
+    data = {
+        "email":email,
+        "username":newUsername,
+        "password":newPassword
+    }
+    r = req.post(f"{BASE}/update_username_and_password", json=data)
+    print("修改:", r.json())
+
+
 # ========== Todo 相关 ==========
 def test_get_todos(email):
     data = {"email":email}
@@ -81,7 +91,7 @@ def test_step_del(stepUid,email):
         "email":email
     }
     r = req.post(f"{BASE}/step_del", json=data)
-    print("步骤删除:", r)
+    print("步骤删除:", r.json())
 
 def test_step_change(stepUid,status,email):
     data = {
@@ -90,7 +100,7 @@ def test_step_change(stepUid,status,email):
         "email":email
     }
     r = req.post(f"{BASE}/step_change", json=data)
-    print("步骤变更:", r)
+    print("步骤变更:", r.json())
 
 # ========== 积分相关 ==========
 def test_get_user_score(email):
@@ -105,34 +115,40 @@ def test_get_scores(email):
 
 # ========== 测试执行 ==========
 if __name__ == "__main__":
-    # 1. 注册用户
+    # 1. 测试用户系统
     test_register("1","1@qq.com","123")
     test_register("2","2@qq.com","123")
-    test_register("3","3@qq.com","123")
-    # 2. 登录
+    test_login("1@qq.com","124")
     test_login("2@qq.com","123")
-    # 3. 添加待办
-    todo1id = test_add_todo("test","this is a test","2025-08-27","123","2@qq.com")
-    todo2id = test_add_todo("test1","this is a test1","2025-08-28","12","2@qq.com")
-    todo3id = test_add_todo("test","this is a test","2025-08-27","123","1@qq.com")# 未登录
-
-    # 查看待办
-    test_get_todos("2@qq.com")
-    # 4. 增加步骤
-    step1id = test_step_add(todo1id,"step1","2@qq.com")
-    step2id = test_step_add(todo1id,"step2","2@qq.com")
-    step3id = test_step_add(todo1id,"step3","2@qq.com")
-    step4id = test_step_add(todo1id,"step1","1@qq.com")# 错误邮箱
-    # 查看步骤
-    test_get_steps(todo1id,"2@qq.com")
-    # 5. 删除步骤
-    test_step_del(step1id,"2@qq.com")
-    # 6, 完成步骤
-    test_step_change(step2id,"False","2@qq.com")
-    # 完成待办
-    test_todo_complete(todo1id,"2@qq.com")
-    # 6. 查询积分
-    test_get_user_score("2@qq.com")
+    test_update_username_and_password("2@qq.com","new_2","new_123")
+    test_login("2@qq.com","new_123")
+    # 测试todo系统
+    test_add_todo("todo1","none","2025-07-01","12","1@qq.com")
+    todo1 = test_add_todo("todo1","none","2025-07-01","12","2@qq.com")
+    todo2 = test_add_todo("todo2","none","2025-07-01","11","2@qq.com")
+    todo3 = test_add_todo("todo3","none","2025-07-01","10","2@qq.com")
+    step1Uid_todo1 = test_step_add(todo1,"step1Uid_todo1","2@qq.com")
+    step2Uid_todo1 = test_step_add(todo1,"step2Uid_todo1","2@qq.com")
+    step3Uid_todo1 = test_step_add(todo1,"step3Uid_todo1","2@qq.com")
+    test_get_steps(todo1,"2@qq.com")
+    step1Uid_todo2 = test_step_add(todo2,"step1Uid_todo2","2@qq.com")
+    test_get_steps(todo1,"2@qq.com")
+    step2Uid_todo2 = test_step_add(todo2,"step2Uid_todo2","2@qq.com")
+    step1Uid_todo3 = test_step_add(todo2,"step1Uid_todo3","2@qq.com")
+    step2Uid_todo3 = test_step_add(todo2,"step2Uid_todo3","2@qq.com")
+    test_get_steps(todo2,"2@qq.com")
+    test_step_change(step1Uid_todo1,"False","2@qq.com")
+    test_step_del(step2Uid_todo1,"2@qq.com")
+    test_del_todo("2@qq.com",todo2)
     test_get_scores("2@qq.com")
-    # 7. 删除任务
-    test_del_todo("2@qq.com",todo2id)
+    test_get_user_score("1@qq.com")
+    test_todo_complete(todo3,"2@qq.com")
+    test_get_user_score("1@qq.com")
+    test_get_scores("2@qq.com")
+
+
+
+    
+
+
+    

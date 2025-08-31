@@ -99,6 +99,6 @@ def step_change_view():
     data = request.get_json()
     stepUid = data.get("stepUid")
     status = data.get("status")
-    query_db("UPDATE steps SET status= where stepUid=?",
+    query_db("UPDATE steps SET status=? where stepUid=?",
                  (status,stepUid,))
     return jsonify({"code": 200, "msg": "ok"})
