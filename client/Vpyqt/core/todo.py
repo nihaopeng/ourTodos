@@ -1,4 +1,6 @@
 import uuid
+
+import requests
 from core.config import getConfig, setConfig
 import uuid
 from core.LLMCaller import LLMCaller
@@ -61,11 +63,38 @@ class GenScoreWorker(QObject):
             # print(e)
             self.error.emit(str(e))
 
-class CommonTodoManager(QObject):
+class RemoteTodoManager(QObject):
     def __init__(self):
         self.todos = []
+        self.req = requests.Session()
 
     def getTodos(self):
+        data = {
+            "email":getConfig()["USER"]["EMAIL"]
+        }
+        res = self.req.post(getConfig()["REMOTE"]["URL"],json=data)
+        todos = res.json()["todos"]
+        print(todos)
+
+    def addTodo(self,name,description,date):
+        pass
+
+    def delTodo(self,todoUid):
+        pass
+
+    def finishTodo(self,todoUid):
+        pass
+
+    def setTodoStep(self,todoUid,stepUid,status):
+        pass
+
+    def delTodoStep(self,todoUid,stepUid):
+        pass
+
+    def getTodoStep(self,todoUid):
+        pass
+
+    def todoAddStep(self,todoUid,stepUid,stepName):
         pass
 
 class CustomerTodoManager(QObject):
@@ -79,6 +108,7 @@ class CustomerTodoManager(QObject):
         config = getConfig()
         todos = config.get("TODO", [])
         # print(todos)
+        self.todos.clear()
         for todo in todos:
             todoUid = todo.get("uid", "")
             todoName = todo.get("name", "")
@@ -253,7 +283,7 @@ class TodoManager(QObject):
     def __init__(self) -> None:
         super().__init__()
         self.customerTodoManager = CustomerTodoManager()
-        self.commonTodoManager = CommonTodoManager()
+        self.remoteTodoManager = RemoteTodoManager()
         self.customerTodoManager.scoreSignal.connect(self.scoreSignal.emit)
         self.customerTodoManager.errorSignal.connect(self.errorSignal.emit)
 
@@ -262,7 +292,7 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.getTodos()
         else:
-            return self.commonTodoManager.getTodos()
+            return self.remoteTodoManager.getTodos()
         
     def addTodo(self,name,description,date):
         # === 用线程异步生成分数 ===
@@ -270,7 +300,7 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.addTodo(name,description,date)
         else:
-            return self.commonTodoManager.addTodo(name,description,date)
+            return self.remoteTodoManager.addTodo(name,description,date)
         
     def delTodo(self,todoUid):
         # === 用线程异步生成分数 ===
@@ -278,14 +308,14 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.delTodo(todoUid)
         else:
-            return self.commonTodoManager.delTodo(todoUid)
+            return self.remoteTodoManager.delTodo(todoUid)
         
     def finishTodo(self,todoUid):
         config = getConfig()
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.finishTodo(todoUid)
         else:
-            return self.commonTodoManager.finishTodo(todoUid)
+            return self.remoteTodoManager.finishTodo(todoUid)
     
     def setTodoStep(self,todoUid,stepUid,status):
         """
@@ -295,7 +325,7 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.setTodoStep(todoUid,stepUid,status)
         else:
-            return self.commonTodoManager.setTodoStep(todoUid,stepUid,status)
+            return self.remoteTodoManager.setTodoStep(todoUid,stepUid,status)
         
     def delTodoStep(self,todoUid,stepUid):
         """
@@ -305,7 +335,7 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.delTodoStep(todoUid,stepUid)
         else:
-            return self.commonTodoManager.delTodoStep(todoUid,stepUid)
+            return self.remoteTodoManager.delTodoStep(todoUid,stepUid)
         
     def getTodoStep(self,todoUid):
         """
@@ -315,7 +345,7 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.getTodoStep(todoUid)
         else:
-            return self.commonTodoManager.getTodoStep(todoUid)
+            return self.remoteTodoManager.getTodoStep(todoUid)
         
     def todoAddStep(self,todoUid,stepUid,stepName):
         """
@@ -325,4 +355,4 @@ class TodoManager(QObject):
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.todoAddStep(todoUid,stepUid,stepName)
         else:
-            return self.commonTodoManager.todoAddStep(todoUid,stepUid,stepName)
+            return self.remoteTodoManager.todoAddStep(todoUid,stepUid,stepName)

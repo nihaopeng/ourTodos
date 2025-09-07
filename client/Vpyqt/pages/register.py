@@ -2,6 +2,9 @@ from PySide6.QtWidgets import (
     QWidget, 
     QMessageBox
 )
+import requests
+from core.config import getConfig
+from core.user import UserManager
 from uipy.registerForm import Ui_Form as RegisterFormUI
 
 class RegisterPage(QWidget):
@@ -9,28 +12,46 @@ class RegisterPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_window = parent
+        self.userManager = UserManager()
+        self.req = requests.session()
         
         # 设置UI
         self.ui = RegisterFormUI()
         self.ui.setupUi(self)
         
         # 连接信号
+        self.ui.sendCodeBtn.clicked.connect(self.sendCode)
         self.ui.registerBtn.clicked.connect(self.attempt_register)
         self.ui.back2loginBtn.clicked.connect(self.go_to_login)
         # self.ui..clicked.connect(self.go_to_login)
+
+    def sendCode(self):
+        email = self.ui.emailLineEdit.text()
+        if email:
+            status,reason = self.userManager.sendCode(email)
+            if not status:
+                QMessageBox.warning(self, "验证码发送失败",reason)
+            self.ui.sendCodeBtn.setEnabled(False)
+        else:
+            QMessageBox.warning(self, "错误","请先填写邮箱")
     
     def attempt_register(self):
         """尝试注册"""
         username = self.ui.usernameLineEdit.text()
         email = self.ui.emailLineEdit.text()
         password = self.ui.passwordLineEdit.text()
+        code = self.ui.codeLineEdit.text()
         
         if not username or not email or not password:
             QMessageBox.warning(self, "输入错误", "所有字段都必须填写！")
             return
             
         # 在实际应用中，这里会有注册逻辑
-        QMessageBox.information(self, "注册成功", f"用户 {username} 注册成功！")
+        status,reason = self.userManager.register(email,username,password,code)
+        if status:
+            QMessageBox.information(self, "注册成功", f"用户 {username} 注册成功！")
+        else:
+            QMessageBox.information(self, "注册失败", f"{reason}")
         self.go_to_login()
     
     def go_to_login(self):

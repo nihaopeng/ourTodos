@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("ourTodos")
-        self.setGeometry(1400, 36, 400, 500)
+        self.setGeometry(1000, 36, 400, 500)
 
         # 窗口沉底
         # self.set_desktop_window()
@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
 APP_KEY = "ourTodosKey"  # 全局唯一标识
 
 if __name__ == "__main__":
-    applyUpdate(__file__)
+    # applyUpdate(__file__)
     shared_mem = QSharedMemory(APP_KEY)
     app = QApplication(sys.argv)
     # 重复打开检查

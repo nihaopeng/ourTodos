@@ -4,6 +4,9 @@ from flask import jsonify, request,Blueprint
 
 from core.dbOp import connect, query_db
 from core.userView import login_required
+from core.LLMCaller import LLMCaller
+from core.provider import deepseek
+from core.config import getConfig
 
 todoViewbp = Blueprint('todoView',__name__)
 
@@ -17,6 +20,33 @@ def get_todos_view():
              (email,))
     return jsonify({"code": 200, "msg": "ok", "todos":todos})
 
+def genScore(profile,todoDesc):
+    try:
+        llmCaller = LLMCaller()
+        llmCaller.register_model("deepseek", deepseek.handler_factory)
+        TEMPLATE = """
+        用户画像如下：
+        {personalProfile}
+        考虑用户画像，并满足以下需求。
+        {genScorePrompt}
+        以下是待办的内容:
+        <todo>
+        {todo}
+        </todo>
+        """
+        # TODO:加上判空逻辑
+        query = TEMPLATE.format(personalProfile=profile,genScorePrompt=getConfig()["LLM"]["genScorePrompt"],todo=todoDesc)
+        # print(query)
+        fulltext = ""
+        for chunk in llmCaller.stream(query):
+            fulltext += chunk
+
+        score = int(fulltext.strip())
+        return score
+    except Exception as e:
+        # print(e)
+        raise e
+
 @todoViewbp.route("/add_todo", methods=["POST"])
 @login_required
 def add_todo_view():
@@ -24,8 +54,13 @@ def add_todo_view():
     name = data.get("todoName")
     desc = data.get("todoDescription")
     ddl = data.get("ddl")
-    score = 1 #TODO:大模型生成
     email = data.get("email")
+    # score = 1 #TODO:大模型生成
+    try:
+        score = genScore(query_db("SELECT profile FROM users WHERE email=?",
+             (email,)),desc)
+    except Exception as e:
+        return jsonify({"code": 404, "msg": str(e)})
 
     conn = connect()
     cur = conn.cursor()
@@ -36,7 +71,7 @@ def add_todo_view():
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({"code": 200, "msg": "ok", "todoUid":new_id})
+        return jsonify({"code": 200, "msg": "ok", "todoUid":new_id,"score":score})
     except Exception as e:
         return jsonify({"code": 402, "msg": str(e)})
     
