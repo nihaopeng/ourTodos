@@ -51,7 +51,6 @@ def test_add_todo(todoName,todoDescription,ddl,score,email):
         "todoName": todoName,
         "todoDescription": todoDescription,
         "ddl": ddl,
-        "score": score,
         "email": email
     }
     r = req.post(f"{BASE}/add_todo", json=data)

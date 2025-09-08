@@ -1,5 +1,5 @@
 import uuid
-from core.config import getConfig, setConfig
+from core.config import getConfig, setConfig,request
 import uuid
 from core.LLMCaller import LLMCaller
 from core.provider import deepseek
@@ -10,7 +10,23 @@ class RankManager(QObject):
         super().__init__()
     
     def getScores(self):
-        pass
+        email = getConfig()["USER"]["EMAIL"]
+        if email=="":
+            pass
+        else:
+            data = {
+                "email":getConfig()["USER"]["EMAIL"]
+            }
+            res = request("get_scores",json=data)
+            res = res.json()
+            if res["code"]==200:
+                return res["data"]
+            else:
+                return None
 
-    def genRank(self):
-        pass
+    def getRank(self):
+        Scores = self.getScores()
+        print(Scores)
+        rank = sorted(Scores, key=lambda x: x["score"], reverse=True)
+        print(rank)
+        return rank

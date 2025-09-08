@@ -1,4 +1,4 @@
-from core.config import getConfig, setConfig
+from core.config import getConfig, setConfig,request
 
 class SettingsManager():
     def __init__(self) -> None:
@@ -17,10 +17,15 @@ class SettingsManager():
     
     def saveUserInfo(self,username,password,profile):
         """
-        TODO: 保存用户信息,同步云端
+        保存用户信息,同步云端
         """
         if username and password:
-            return True
+            res1 = request("update_username_and_password",{"email":getConfig()["USER"]["EMAIL"],"username":username,"password":password}).json()
+            res2 = request("set_profile",{"email":getConfig()["USER"]["EMAIL"],"profile":profile}).json()
+            if res1["code"]==200 and res2["code"]==200:
+                return True
+            else:
+                return False
         else:
             return False
 

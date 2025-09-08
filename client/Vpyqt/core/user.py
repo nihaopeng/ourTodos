@@ -1,18 +1,15 @@
 import requests
 
-from core.config import getConfig, setConfig
-
+from core.config import getConfig, setConfig,request
 
 class UserManager():
-    def __init__(self) -> None:
-        self.req = requests.session()
 
     def login(self,email,password):
         data = {
             "email":email,
             "password":password
         }
-        res = self.req.post(f"{getConfig()["REMOTE"]["URL"]}/login",json=data)
+        res = request("login",json=data)
         res = res.json()
         if res["code"]==200:
             config = getConfig()
@@ -31,7 +28,7 @@ class UserManager():
             "password":password,
             "code":code
         }
-        res = self.req.post(f"{getConfig()["REMOTE"]["URL"]}/regist",json=data)
+        res = request("regist",json=data)
         res = res.json()
         if res["code"]==200:
             return True,res["msg"]
@@ -42,9 +39,26 @@ class UserManager():
         data = {
             "email":email
         }
-        res = self.req.post(f"{getConfig()["REMOTE"]["URL"]}/send_verification_code",json=data)
+        res = request("send_verification_code",json=data)
         res = res.json()
         if res["code"]==200:
             return True,res["msg"]
         else:
             return False,res["msg"]
+        
+    def getScore(self):
+        config = getConfig()
+        email = config["USER"]["EMAIL"]
+        if email=="":
+            return True,config["USER"]["SCORE"]
+        else:
+            data = {
+                "email":email
+            }
+            res = request("get_user_score",json=data)
+            res = res.json()
+            print(res)
+            if res["code"]==200:
+                return True,str(res["score"])
+            else:
+                return False,res["msg"]

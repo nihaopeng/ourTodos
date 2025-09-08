@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (
     QWidget,QMessageBox,QPushButton,QCheckBox,QHBoxLayout
 )
+from core.user import UserManager
 from core.config import getConfig
 from pages.todoStatusCheck import TodoDialogResult, TodoStatusCheckWindow
 from uipy.todoListForm import Ui_Form as TodoListFormUI
@@ -51,6 +52,7 @@ class TodoListPage(QWidget):
         if self.parent_window is None:
             raise ValueError("LoginPage 必须有一个父窗口")
         self.todoManager = TodoManager()
+        self.userManager = UserManager()
 
         # 设置UI
         self.ui = TodoListFormUI()
@@ -99,6 +101,8 @@ class TodoListPage(QWidget):
         newTodo = TodoButton(todo,self.todoManager,self)
         newTodo.clicked.connect(lambda: self.toggleTodo(newTodo))
         self.ui.verticalLayout.insertWidget(0,newTodo)
+        self.ui.todoLineEdit.clear()
+        self.ui.todoDescribeTextEdit.clear()
 
     def toggleTodo(self,btn: TodoButton):
         # 用按钮本身的 name/description，而不是重新从输入框读
@@ -128,8 +132,11 @@ class TodoListPage(QWidget):
         self.parent_window.switch_to_page("settings", "right")
 
     def showScore(self):
-        config = getConfig()
-        self.ui.scoreLabel.setText("score:"+config["USER"]["SCORE"])
+        status,score_or_reason = self.userManager.getScore()
+        if status:
+            self.ui.scoreLabel.setText("score:"+score_or_reason)
+        else:
+            QMessageBox.information(self,"错误",score_or_reason)
     
     def gotoRank(self):
         self.parent_window.register_page("rank", RankPage(self.parent_window))

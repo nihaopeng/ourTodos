@@ -1,7 +1,10 @@
+import requests
 import toml
 import os
 
 config_path = os.path.join(os.path.dirname(__file__),"config.toml")
+
+req = requests.session()
 
 def getConfig():
     return toml.load(config_path)
@@ -10,6 +13,9 @@ def setConfig(config):
     with open(config_path, "w",encoding='utf-8') as f:
         toml.dump(config, f)
     return
+
+def request(route:str,json:dict):
+    return req.post(f"{getConfig()["REMOTE"]["URL"]}/{route}",json=json)
 
 # def finishTodo(uid):
 #     """

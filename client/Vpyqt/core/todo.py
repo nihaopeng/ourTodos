@@ -1,7 +1,7 @@
 import uuid
 
 import requests
-from core.config import getConfig, setConfig
+from core.config import getConfig, setConfig,request
 import uuid
 from core.LLMCaller import LLMCaller
 from core.provider import deepseek
@@ -25,6 +25,34 @@ class Todo():
         for step in steps:
             self.steps.append(TodoStep(step[0],step[1],step[2]))
     # def 
+
+class AddTodoWorker(QObject):
+    finished = Signal(str,str,int,str,str)   # 添加完成信号
+    error = Signal(str)   # 出错信号
+    
+    def __init__(self, name, description, date, parent=None):
+        super().__init__(parent)
+        self.todoName = name
+        self.todoDescription = description
+        self.ddl = date
+    
+    @Slot()
+    def run(self):
+        try:
+            data = {
+                "email": getConfig()["USER"]["EMAIL"],
+                "todoName": self.todoName,
+                "todoDescription": self.todoDescription,
+                "ddl": self.ddl,
+            }
+            res = request("add_todo", json=data)
+            
+            if res.json()["code"] != 200:
+                raise Exception(f"Failed to add todo: {res.json().get('msg', 'Unknown error')}")
+            
+            self.finished.emit(res.json()["todoUid"],self.todoName,res.json()["score"],self.todoDescription,self.ddl)
+        except Exception as e:
+            self.error.emit(str(e))
 
 class GenScoreWorker(QObject):
     finished = Signal(str,int,str,str)   # 生成完毕，返回分数
@@ -64,38 +92,136 @@ class GenScoreWorker(QObject):
             self.error.emit(str(e))
 
 class RemoteTodoManager(QObject):
+    scoreSignal = Signal(Todo)
+    errorSignal = Signal(str)
     def __init__(self):
+        super().__init__()
         self.todos = []
-        self.req = requests.Session()
 
     def getTodos(self):
         data = {
-            "email":getConfig()["USER"]["EMAIL"]
+            "email": getConfig()["USER"]["EMAIL"]
         }
-        res = self.req.post(getConfig()["REMOTE"]["URL"],json=data)
+        res = request("get_todos", json=data)
         todos = res.json()["todos"]
-        print(todos)
+        self.todos.clear()
+        for todo in todos:
+            todoUid = todo[0]
+            todoName = todo[1]
+            todoDescription = todo[2]
+            score = todo[4]
+            date = todo[3]
+            status = todo[5]
+            steps = []
+            self.todos.append(Todo(todoUid, todoName, todoDescription, score, date, status, steps))
+        return self.todos
 
-    def addTodo(self,name,description,date):
-        pass
+    def addTodo(self, name, description, date):
+        # 创建线程和工作对象
+        self.thread = QThread()
+        self.add_worker = AddTodoWorker(name, description, date)
+        self.add_worker.moveToThread(self.thread)
+        
+        # 连接信号和槽
+        self.thread.started.connect(self.add_worker.run)
+        self.add_worker.finished.connect(self.on_genScore_finished)
+        self.add_worker.error.connect(self.on_genScore_error)
+        
+        # 自动清理
+        self.add_worker.finished.connect(self.thread.quit)
+        self.add_worker.finished.connect(self.add_worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        # 启动线程
+        self.thread.start()
 
-    def delTodo(self,todoUid):
-        pass
+    def delTodo(self, todoUid):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "todo_id": todoUid
+        }
+        res = request("del_todo", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to delete todo: {res.json().get('msg', 'Unknown error')}")
+        
+        # 删除成功后，重新获取所有待办事项
+        return self.getTodos()
 
-    def finishTodo(self,todoUid):
-        pass
+    def finishTodo(self, todoUid):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "todo_id": todoUid
+        }
+        res = request("todo_complete", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to finish todo: {res.json().get('msg', 'Unknown error')}")
+        
+        # 完成待办后，重新获取所有待办事项
+        return self.getTodos()
 
-    def setTodoStep(self,todoUid,stepUid,status):
-        pass
+    def setTodoStep(self, todoUid, stepUid, status):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "stepUid": stepUid,
+            "status": status
+        }
+        res = request("set_todo_step", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to set todo step: {res.json().get('msg', 'Unknown error')}")
+        
+        return True
 
-    def delTodoStep(self,todoUid,stepUid):
-        pass
+    def delTodoStep(self, todoUid, stepUid):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "stepUid": stepUid
+        }
+        res = request("del_todo_step", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to delete todo step: {res.json().get('msg', 'Unknown error')}")
+        
+        return True
 
-    def getTodoStep(self,todoUid):
-        pass
+    def getTodoStep(self, todoUid):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "todo_id": todoUid
+        }
+        res = request("get_steps", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to get todo steps: {res.json().get('msg', 'Unknown error')}")
+        
+        return res.json().get("steps", [])
 
-    def todoAddStep(self,todoUid,stepUid,stepName):
-        pass
+    def todoAddStep(self, todoUid, stepUid, stepName):
+        data = {
+            "email": getConfig()["USER"]["EMAIL"],
+            "todo_id": todoUid,
+            "stepName": stepName
+        }
+        res = request("todo_add_step", json=data)
+        
+        if res.json()["code"] != 200:
+            raise Exception(f"Failed to add todo step: {res.json().get('msg', 'Unknown error')}")
+        
+        return True
+    
+    def on_genScore_finished(self,todoUid,todoName,score,todoDescription,todoDdl):
+        newTodo = Todo(todoUid,todoName,todoDescription,score,todoDdl,"True",[])
+        self.scoreSignal.emit(newTodo)
+        # 关闭加载
+        self.thread.quit()
+        # self.ui.addTodoBtn.setEnabled(True)
+
+    def on_genScore_error(self, msg):
+        # self.loadingUi.hide()
+        self.errorSignal.emit(msg)
+        self.thread.quit()
 
 class CustomerTodoManager(QObject):
     scoreSignal = Signal(Todo)
@@ -286,6 +412,8 @@ class TodoManager(QObject):
         self.remoteTodoManager = RemoteTodoManager()
         self.customerTodoManager.scoreSignal.connect(self.scoreSignal.emit)
         self.customerTodoManager.errorSignal.connect(self.errorSignal.emit)
+        self.remoteTodoManager.scoreSignal.connect(self.scoreSignal.emit)
+        self.remoteTodoManager.errorSignal.connect(self.errorSignal.emit)
 
     def getTodos(self) -> list[Todo]:
         config = getConfig()

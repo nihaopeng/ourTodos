@@ -1,7 +1,8 @@
 
 from PySide6.QtWidgets import (
-    QWidget
+    QWidget,QPushButton
 )
+from core.rank import RankManager
 from uipy.rankForm import Ui_Form as RankFormUI
 from uipy.loadingForm import Ui_Form as LoadingFormUI
 
@@ -12,6 +13,7 @@ class RankPage(QWidget):
         self.parent_window = parent
         if self.parent_window is None:
             raise ValueError("LoginPage 必须有一个父窗口")
+        self.rankManager = RankManager()
         
         # 设置UI
         self.ui = RankFormUI()
@@ -20,9 +22,8 @@ class RankPage(QWidget):
 
         # 加载数据
         self.loadingUi.show()
-        # TODO:加载数据
+        self.loadRank()
         self.loadingUi.hide()
-        # TODO:显示排名
 
         # 连接信号与槽
         self.ui.back2homeBtn.clicked.connect(self.go_to_home)
@@ -34,4 +35,16 @@ class RankPage(QWidget):
 
     def loadRank(self):
         # 从远端加载排名数据
-        pass
+        rank = self.rankManager.getRank()
+        self.clear_layout()
+        for user in rank:
+            userBtn = QPushButton(f"{user["username"]} / {user["score"]}")
+            self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,userBtn)
+
+    def clear_layout(self):
+        # 减一避免删除掉布局的控件widget
+        for i in reversed(range(self.ui.verticalLayout.count()-1)):
+            widget = self.ui.verticalLayout.itemAt(i).widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()

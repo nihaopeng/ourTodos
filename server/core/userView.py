@@ -28,6 +28,7 @@ def send_verification_code():
     verification_codes[email] = (time.time(), code)
 
     # 邮件内容
+    print(email)
     msg = Message('Your Verification Code', recipients=[email])
     msg.body = f"Your verification code is {code}."
 
@@ -142,10 +143,10 @@ def get_user_score_view():
     email = data.get("email")
     score = query_db("SELECT score FROM users WHERE email=?", (email,), one=True)
     if score:
-        return jsonify({"code": 200, "score": score})
+        return jsonify({"code": 200, "score": score[0]})
     return jsonify({"code": 404, "msg": "user not found"})
 
-@userViewBp.route("/get_scores", methods=["GET"])
+@userViewBp.route("/get_scores", methods=["POST"])
 @login_required
 def get_scores_view():
     users = query_db("SELECT email, username, score FROM users")
