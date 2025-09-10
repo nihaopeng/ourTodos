@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from core.rank import RankManager
 from uipy.rankForm import Ui_Form as RankFormUI
 from uipy.loadingForm import Ui_Form as LoadingFormUI
+from core.config import getConfig
 
 class RankPage(QWidget):
     """登录页面"""
@@ -21,9 +22,7 @@ class RankPage(QWidget):
         self.loadingUi = LoadingFormUI(self)
 
         # 加载数据
-        self.loadingUi.show()
         self.loadRank()
-        self.loadingUi.hide()
 
         # 连接信号与槽
         self.ui.back2homeBtn.clicked.connect(self.go_to_home)
@@ -34,12 +33,18 @@ class RankPage(QWidget):
         self.parent_window.switch_to_page("todoList", "left")
 
     def loadRank(self):
+        self.loadingUi.show()
         # 从远端加载排名数据
         rank = self.rankManager.getRank()
         self.clear_layout()
-        for user in rank:
-            userBtn = QPushButton(f"{user["username"]} / {user["score"]}")
+        config = getConfig()
+        for i,user in enumerate(rank):
+            userBtn = QPushButton(f"{user["username"]} / score:{user["score"]}")
+            if user["username"] == config["USER"]["USERNAME"]:
+                userBtn.setStyleSheet("background-color:red;")
+                self.ui.rankLabel.setText(f"rank:{i+1}")
             self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,userBtn)
+        self.loadingUi.hide()
 
     def clear_layout(self):
         # 减一避免删除掉布局的控件widget

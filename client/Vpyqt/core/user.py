@@ -57,7 +57,7 @@ class UserManager():
             }
             res = request("get_user_score",json=data)
             res = res.json()
-            print(res)
+            # print(res)
             if res["code"]==200:
                 return True,str(res["score"])
             else:

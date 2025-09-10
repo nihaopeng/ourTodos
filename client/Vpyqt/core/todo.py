@@ -27,7 +27,7 @@ class Todo():
     # def 
 
 class AddTodoWorker(QObject):
-    finished = Signal(str,str,int,str,str)   # 添加完成信号
+    finished = Signal(int,str,int,str,str)   # 添加完成信号
     error = Signal(str)   # 出错信号
     
     def __init__(self, name, description, date, parent=None):
@@ -167,7 +167,7 @@ class RemoteTodoManager(QObject):
             "stepUid": stepUid,
             "status": status
         }
-        res = request("set_todo_step", json=data)
+        res = request("step_change", json=data)
         
         if res.json()["code"] != 200:
             raise Exception(f"Failed to set todo step: {res.json().get('msg', 'Unknown error')}")
@@ -179,7 +179,7 @@ class RemoteTodoManager(QObject):
             "email": getConfig()["USER"]["EMAIL"],
             "stepUid": stepUid
         }
-        res = request("del_todo_step", json=data)
+        res = request("step_del", json=data)
         
         if res.json()["code"] != 200:
             raise Exception(f"Failed to delete todo step: {res.json().get('msg', 'Unknown error')}")
@@ -204,12 +204,12 @@ class RemoteTodoManager(QObject):
             "todo_id": todoUid,
             "stepName": stepName
         }
-        res = request("todo_add_step", json=data)
+        res = request("step_add", json=data)
         
         if res.json()["code"] != 200:
             raise Exception(f"Failed to add todo step: {res.json().get('msg', 'Unknown error')}")
         
-        return True
+        return res.json()["stepUid"]
     
     def on_genScore_finished(self,todoUid,todoName,score,todoDescription,todoDdl):
         newTodo = Todo(todoUid,todoName,todoDescription,score,todoDdl,"True",[])

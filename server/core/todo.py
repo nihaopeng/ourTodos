@@ -113,6 +113,7 @@ def get_steps_view():
 def step_add_view():
     data = request.get_json()
     todo_id = data.get("todo_id")
+    # print(todo_id)
     stepName = data.get("stepName")
     stepUid = str(uuid.uuid4())
     query_db("INSERT INTO steps (stepUid,stepName, status, todoid) VALUES (?,?,?,?)",
@@ -124,6 +125,7 @@ def step_add_view():
 def step_del_view():
     data = request.get_json()
     stepUid = data.get("stepUid")
+    # print(stepUid)
     query_db("DELETE FROM steps where stepUid=?",
                  (stepUid,))
     return jsonify({"code": 200, "msg": "ok"})

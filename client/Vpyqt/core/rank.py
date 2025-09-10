@@ -26,7 +26,7 @@ class RankManager(QObject):
 
     def getRank(self):
         Scores = self.getScores()
-        print(Scores)
+        # print(Scores)
         rank = sorted(Scores, key=lambda x: x["score"], reverse=True)
-        print(rank)
+        # print(rank)
         return rank

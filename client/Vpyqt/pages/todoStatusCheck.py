@@ -22,9 +22,9 @@ class TodoStepCheckBox(QCheckBox):
     def stepChecked(self,checked):
         # print(checked,getTodoStep(self.todoUid))
         if checked:
-            self.todoMamager.setTodoStep(self.todo.todoUid,self.todoStep.stepUid,"True")
-        else:
             self.todoMamager.setTodoStep(self.todo.todoUid,self.todoStep.stepUid,"False")
+        else:
+            self.todoMamager.setTodoStep(self.todo.todoUid,self.todoStep.stepUid,"True")
 
 class TodoStepWidget(QWidget):
     def __init__(self,todoStepCheckBox:TodoStepCheckBox,todoManager:TodoManager,parent):
@@ -89,10 +89,10 @@ class TodoStatusCheckWindow(QDialog):
     def stepAdd(self):
         stepContent = self.ui.stepLineEdit.text()
         if stepContent:
-            stepUid = str(uuid.uuid4())
-            self.todoManager.todoAddStep(self.todo.todoUid,stepUid,stepContent)
-            todoStep = TodoStep(self.todo.todoUid,stepUid,stepContent,"False",self)
-            todoStepWidget = TodoStepWidget(todoStep,self)
+            stepUid = self.todoManager.todoAddStep(self.todo.todoUid,"depricated",stepContent)
+            todoStep = TodoStep(stepUid,stepContent,"True")
+            todoStepCheckBox = TodoStepCheckBox(self.todo,todoStep,self.todoManager,self)
+            todoStepWidget = TodoStepWidget(todoStepCheckBox,self.todoManager,self)
             self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,todoStepWidget)
             self.ui.stepLineEdit.clear()
 
@@ -110,9 +110,9 @@ class TodoStatusCheckWindow(QDialog):
         steps = self.todoManager.getTodoStep(self.todo.todoUid)
         # print(steps)
         for item in steps:
-            stepUid = item[0]
-            stepName = item[1]
-            status = item[2]
+            stepUid = item[1]
+            stepName = item[2]
+            status = item[3]
             todoStep = TodoStep(stepUid,stepName,status)
             todoStepCheckBox = TodoStepCheckBox(self.todo,todoStep,self.todoManager,self)
             todoStepCheckBox.setChecked(True if status=="True" else False)

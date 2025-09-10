@@ -6,8 +6,8 @@ API_KEY = "sk-a6ae756840b146e4aab7020c0865041d"
 genScorePrompt = "现在有一个待办事项，我需要为这个todo打一个分数，当用户完成待办时就加一定的分数\n 请从以下方面为这个待办定一个分数\n1. 重要性\n2. 紧急性\n3,社会价值\n每一点的分数都在0-5分之间,只需要给出最后的整数总分，不需要任何其他内容。\n"
 
 [USER]
-USERNAME = "231415926"
-EMAIL = "YutaoPeng@foxmail.com"
+USERNAME = "nihaopeng"
+EMAIL = "2889567450@qq.com"
 PASSWORD = "231415926"
 SCORE = "0"
 PERSONALPROFILE = "我是一名科研工作者"

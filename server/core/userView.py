@@ -28,7 +28,7 @@ def send_verification_code():
     verification_codes[email] = (time.time(), code)
 
     # 邮件内容
-    print(email)
+    # print(email)
     msg = Message('Your Verification Code', recipients=[email])
     msg.body = f"Your verification code is {code}."
 
