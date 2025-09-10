@@ -6,8 +6,9 @@ import requests
 from core.config import getConfig
 from core.user import UserManager
 from uipy.registerForm import Ui_Form as RegisterFormUI
+from pages.page import Page
 
-class RegisterPage(QWidget):
+class RegisterPage(Page):
     """注册页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -57,3 +58,6 @@ class RegisterPage(QWidget):
     def go_to_login(self):
         """跳转到登录页面"""
         self.parent_window.switch_to_page("login", "right")
+        
+    def fresh(self):
+        return super().fresh()

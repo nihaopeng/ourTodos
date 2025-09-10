@@ -115,6 +115,6 @@ class TodoStatusCheckWindow(QDialog):
             status = item[3]
             todoStep = TodoStep(stepUid,stepName,status)
             todoStepCheckBox = TodoStepCheckBox(self.todo,todoStep,self.todoManager,self)
-            todoStepCheckBox.setChecked(True if status=="True" else False)
+            todoStepCheckBox.setChecked(True if status=="False" else False)
             todoStepWidget = TodoStepWidget(todoStepCheckBox,self.todoManager,self)
             self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,todoStepWidget)

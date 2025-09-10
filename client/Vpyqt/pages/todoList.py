@@ -11,6 +11,7 @@ from PySide6.QtCore import QDate,QDateTime,QTimer
 from uipy.loadingForm import Ui_Form as LoadingFromUI
 from pages.rank import RankPage
 from core.todo import Todo
+from pages.page import Page
 
 class TodoButton(QPushButton):
     """待办事项按钮"""
@@ -44,7 +45,7 @@ class TodoButton(QPushButton):
         """到达日期时的动作"""
         self.setStyleSheet("padding: 10px; font-size: 16px;color:red;")
 
-class TodoListPage(QWidget):
+class TodoListPage(Page):
     """登录页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,14 +70,27 @@ class TodoListPage(QWidget):
         self.ui.counterBtn.clicked.connect(lambda: self.parent_window.switch_to_page("counter","right"))
         self.ui.rankBtn.clicked.connect(self.gotoRank)
 
-        # 加载todos
-        self.loadTodos()
+        # # 加载todos
+        # self.loadTodos()
 
-        # 初始化分数
-        self.showScore()
+        # # 初始化分数
+        # self.showScore()
+        
+    def clear_layout(self):
+        # 减一避免删除掉布局的控件widget
+        for i in reversed(range(self.ui.verticalLayout.count()-1)):
+            item = self.ui.verticalLayout.itemAt(i)
+            if item is None:
+                continue
+            # self.ui.verticalLayout.removeItem(item)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
 
     def loadTodos(self):
         """重新加载"""
+        self.clear_layout()
         todos = self.todoManager.getTodos()
         for todo in todos:
             if todo.todoName and todo.description:
@@ -139,5 +153,11 @@ class TodoListPage(QWidget):
             QMessageBox.information(self,"错误",score_or_reason)
     
     def gotoRank(self):
-        self.parent_window.register_page("rank", RankPage(self.parent_window))
+        # self.parent_window.register_page("rank", RankPage(self.parent_window))
         self.parent_window.switch_to_page("rank", "right")
+        
+    def fresh(self):
+        """刷新页面"""
+        self.loadTodos()
+        self.showScore()
+        return super().fresh()

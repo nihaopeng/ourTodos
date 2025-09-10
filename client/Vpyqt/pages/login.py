@@ -2,13 +2,14 @@
 from PySide6.QtWidgets import (
     QWidget,QMessageBox
 )
+from pages.page import Page
 from core.config import getConfig,setConfig
 from core.user import UserManager
 from pages.settings import SettingsPage
 from pages.todoList import TodoListPage
 from uipy.loginForm import Ui_Form as LoginFormUI
 
-class LoginPage(QWidget):
+class LoginPage(Page):
     """登录页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -40,7 +41,7 @@ class LoginPage(QWidget):
         # 在实际应用中，这里会有身份验证逻辑
         username = self.userManager.login(email,password)
         if username:
-            self.parent_window.register_page("todoList", TodoListPage(self.parent_window))
+            # self.parent_window.register_page("todoList", TodoListPage(self.parent_window))
             # QMessageBox.critical(self, "登录", "")
             self.parent_window.switch_to_page("todoList", "right")
             self.parent_window.show_desktop()
@@ -53,10 +54,12 @@ class LoginPage(QWidget):
         """跳转到客户登录页面"""
         config = getConfig()
         config["USER"]["USERNAME"] = ""
+        config["USER"]["EMAIL"] = ""
+        config["USER"]["PASSWORD"] = ""
         setConfig(config)
         # 登录后注册页面，动态加载内容
-        self.parent_window.register_page("todoList", TodoListPage(self.parent_window))
-        self.parent_window.register_page("settings", SettingsPage(self.parent_window))
+        # self.parent_window.register_page("todoList", TodoListPage(self.parent_window))
+        # self.parent_window.register_page("settings", SettingsPage(self.parent_window))
 
         # 登陆界面不沉底
         # self.parent_window.unset_desktop_window()
@@ -68,3 +71,6 @@ class LoginPage(QWidget):
         """跳转到注册页面"""
         # print("跳转到注册页面")
         self.parent_window.switch_to_page("register", "left")
+        
+    def fresh(self):
+        return super().fresh()
