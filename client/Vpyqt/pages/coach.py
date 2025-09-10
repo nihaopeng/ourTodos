@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (
     QWidget,QCheckBox,QPushButton,QHBoxLayout,QMessageBox
 )
+from pages.page import Page
 from core.coach import CoachManager, Step
 from uipy.coachForm import Ui_Form as CoachFormUI
 from uipy.loadingForm import Ui_Form as LoadingFormUI
@@ -34,7 +35,7 @@ class StepWidget(QWidget):
             parent_layout.removeWidget(self)
         self.deleteLater()
 
-class CoachPage(QWidget):
+class CoachPage(Page):
     """登录页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,3 +70,6 @@ class CoachPage(QWidget):
         stepCheckBox = StepCheckBox(step,self)
         stepWidget = StepWidget(stepCheckBox,self)
         self.ui.verticalLayout_2.insertWidget(self.ui.verticalLayout_2.count()-1,stepWidget)
+        
+    def fresh(self):
+        return super().fresh()

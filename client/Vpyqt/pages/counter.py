@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 import sys
 from PySide6.QtCore import QTimer, QTime, QDateTime, Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
+from pages.page import Page
 from uipy.counterForm import Ui_Form as CounterFormUI
 
 import random
@@ -17,7 +18,7 @@ from PySide6.QtCore import QUrl
 from uipy.counterForm import Ui_Form as CounterFormUI  # 你的 counter.ui 转换生成的文件
 
 
-class CounterPage(QWidget):
+class CounterPage(Page):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_window = parent
@@ -157,6 +158,9 @@ class CounterPage(QWidget):
             self.resting = False
             self.schedule_next_break()
             # self.timer.start()
+            
+    def fresh(self):
+        return super().fresh()
 
 
         

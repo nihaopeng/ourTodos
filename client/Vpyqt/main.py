@@ -10,6 +10,8 @@ from PySide6.QtCore import (
 from PySide6.QtGui import (
     QColor,QPainter, QRegion, QPainterPath,QIcon, QPainter, QAction
 )
+from pages.rank import RankPage
+from pages.todoList import TodoListPage
 from core.config import getConfig
 from core.updater import applyUpdate
 from stackWidget import SlideStackedWidget
@@ -89,9 +91,11 @@ class MainWindow(QMainWindow):
         self.register_page("login", LoginPage(self))
         self.register_page("register", RegisterPage(self))
         self.register_page("settings", SettingsPage(self))  
-        # self.register_page("todoList", TodoListPage(self)) # 登录界面后再重新创建
+        self.register_page("todoList", TodoListPage(self)) # 登录界面后再重新创建
         self.register_page("coach", CoachPage(self))  # 注册教练页面
         self.register_page("counter", CounterPage(self))
+        self.register_page("rank", RankPage(self))  # 占位，实际创建在需要时
+        
         
         # 初始显示登录页面
         self.switch_to_page("login", "right")
@@ -146,6 +150,7 @@ class MainWindow(QMainWindow):
         # 设置动画方向
         self.stacked_widget.direction = direction
         # 切换页面
+        self.pages[page_name].fresh()
         self.stacked_widget.setCurrentWidget(self.pages[page_name])
 
     def paintEvent(self, event):

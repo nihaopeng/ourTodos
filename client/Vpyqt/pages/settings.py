@@ -4,8 +4,9 @@ from PySide6.QtWidgets import (
 )
 from core.settings import SettingsManager
 from uipy.settingsForm import Ui_Form as SettingsFormUI
+from pages.page import Page
 
-class SettingsPage(QWidget):
+class SettingsPage(Page):
     """设置页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -15,8 +16,8 @@ class SettingsPage(QWidget):
 
         self.settingsManager = SettingsManager()
 
-        # 设置内容
-        self.initSettings()
+        # # 设置内容
+        # self.initSettings()
 
         # 连接信号与槽
         self.ui.back2homeBtn.clicked.connect(self.go_to_home)
@@ -89,3 +90,7 @@ class SettingsPage(QWidget):
         self.ui.modelLineEdit.setText(config.get("LLM", {}).get("MODEL_NAME", ""))
         self.ui.apikeyLineEdit.setText(config.get("LLM", {}).get("API_KEY", ""))
         self.ui.genScorePromptTextEdit.setText(config.get("LLM", {}).get("genScorePrompt", ""))
+    
+    def fresh(self):
+        self.initSettings()
+        return super().fresh()
