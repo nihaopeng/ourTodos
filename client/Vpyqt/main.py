@@ -65,7 +65,8 @@ class MainWindow(QMainWindow):
         self.setGeometry(1000, 36, 400, 500)
 
         # 窗口沉底
-        # self.set_desktop_window()
+        self.radius = 15
+        self.updateMask()  # 初始设置遮罩
         
         # 创建中央部件
         central_widget = QWidget()
@@ -153,21 +154,24 @@ class MainWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.pages[page_name])
         self.pages[page_name].fresh()
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(Qt.transparent)
-        painter.setBrush(QColor(255, 255, 255, 100))  # 不透明白色
-        rect = self.rect()
-        painter.drawRoundedRect(rect, 15, 15)
+    def resizeEvent(self, event):
+        self.updateMask()  # 尺寸变化时更新遮罩
+        super().resizeEvent(event)
 
-        # 圆角遮罩
+    def updateMask(self):
+        """单独更新遮罩的方法"""
         path = QPainterPath()
-        rect = QRect(0, 0, self.width(), self.height())
-        radius = 15
-        path.addRoundedRect(rect, radius, radius)
+        path.addRoundedRect(self.rect(), self.radius, self.radius)
         region = QRegion(path.toFillPolygon().toPolygon())
         self.setMask(region)
+
+    def paintEvent(self, event):
+        """只负责绘制视觉效果"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor(255, 255, 255, 50))  # 控制透明度
+        painter.drawRoundedRect(self.rect(), self.radius, self.radius)
 
     def unset_desktop_window(self):
         win_hwnd = self.winId()
