@@ -92,8 +92,8 @@ class GenScoreWorker(QObject):
             self.error.emit(str(e))
 
 class RemoteTodoManager(QObject):
-    scoreSignal = Signal(Todo)
-    errorSignal = Signal(str)
+    RemoteScoreSignal = Signal(Todo)
+    RemoteErrorSignal = Signal(str)
     def __init__(self):
         super().__init__()
         self.todos = []
@@ -212,20 +212,21 @@ class RemoteTodoManager(QObject):
         return res.json()["stepUid"]
     
     def on_genScore_finished(self,todoUid,todoName,score,todoDescription,todoDdl):
+        # print("Remote todo added:", todoName, score)
         newTodo = Todo(todoUid,todoName,todoDescription,score,todoDdl,"True",[])
-        self.scoreSignal.emit(newTodo)
+        self.RemoteScoreSignal.emit(newTodo)
         # 关闭加载
         self.thread.quit()
         # self.ui.addTodoBtn.setEnabled(True)
 
     def on_genScore_error(self, msg):
         # self.loadingUi.hide()
-        self.errorSignal.emit(msg)
+        self.RemoteErrorSignal.emit(msg)
         self.thread.quit()
 
 class CustomerTodoManager(QObject):
-    scoreSignal = Signal(Todo)
-    errorSignal = Signal(str)
+    CustomerScoreSignal = Signal(Todo)
+    CustomerErrorSignal = Signal(str)
     def __init__(self):
         super().__init__()
         self.todos = []
@@ -359,14 +360,14 @@ class CustomerTodoManager(QObject):
         todoUid = str(uuid.uuid4())
         self.addTodo2config(todoUid, todoName, todoDescription, score, todoDdl)
         newTodo = Todo(todoUid,todoName,todoDescription,score,todoDdl,"True",[])
-        self.scoreSignal.emit(newTodo)
+        self.CustomerScoreSignal.emit(newTodo)
         # 关闭加载
         self.thread.quit()
         # self.ui.addTodoBtn.setEnabled(True)
 
     def on_genScore_error(self, msg):
         # self.loadingUi.hide()
-        self.errorSignal.emit(msg)
+        self.CustomerErrorSignal.emit(msg)
         self.thread.quit()
 
     def addTodo2config(self,todoid, todoName, todoDescription, score, todoDdl):
@@ -410,10 +411,10 @@ class TodoManager(QObject):
         super().__init__()
         self.customerTodoManager = CustomerTodoManager()
         self.remoteTodoManager = RemoteTodoManager()
-        self.customerTodoManager.scoreSignal.connect(self.scoreSignal.emit)
-        self.customerTodoManager.errorSignal.connect(self.errorSignal.emit)
-        self.remoteTodoManager.scoreSignal.connect(self.scoreSignal.emit)
-        self.remoteTodoManager.errorSignal.connect(self.errorSignal.emit)
+        self.customerTodoManager.CustomerScoreSignal.connect(lambda v:(self.scoreSignal.emit(v)))
+        self.customerTodoManager.CustomerErrorSignal.connect(lambda v:(self.errorSignal.emit(v)))
+        self.remoteTodoManager.RemoteScoreSignal.connect(lambda v:(self.scoreSignal.emit(v)))
+        self.remoteTodoManager.RemoteErrorSignal.connect(lambda v:(self.errorSignal.emit(v)))
 
     def getTodos(self) -> list[Todo]:
         config = getConfig()

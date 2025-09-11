@@ -54,6 +54,8 @@ class TodoListPage(Page):
             raise ValueError("LoginPage 必须有一个父窗口")
         self.todoManager = TodoManager()
         self.userManager = UserManager()
+        self.todoManager.scoreSignal.connect(lambda v:(self.addTodoItem(v),print("add",v.todoName),self.loadingUi.hide()))
+        self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
 
         # 设置UI
         self.ui = TodoListFormUI()
@@ -106,12 +108,11 @@ class TodoListPage(Page):
             return
         # === 用线程异步生成分数 ===
         self.todoManager.addTodo(todoName,todoDescription,date)
-        self.todoManager.scoreSignal.connect(lambda v:(self.addTodoItem(v),self.loadingUi.hide()))
-        self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
         self.loadingUi.show()
 
     def addTodoItem(self,todo:Todo):
         """添加待办事项组件"""
+        print('add todo item:',todo.todoName)
         newTodo = TodoButton(todo,self.todoManager,self)
         newTodo.clicked.connect(lambda: self.toggleTodo(newTodo))
         self.ui.verticalLayout.insertWidget(0,newTodo)
