@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (
     QWidget,QMessageBox,QPushButton,QCheckBox,QHBoxLayout
 )
+from PySide6.QtCore import Qt
 from core.user import UserManager
 from core.config import getConfig
 from pages.todoStatusCheck import TodoDialogResult, TodoStatusCheckWindow
@@ -22,6 +23,12 @@ class TodoButton(QPushButton):
         self.setStyleSheet("padding: 5px; font-size: 16px;")
         self.setText(f"{todo.todoName} -{todo.date} {"" if todo.status == "True" else "√"}")
         self.setup_date_trigger()
+        # self.setToolTip(self.text())
+        self.setText(self.fontMetrics().elidedText(
+            self.text(), 
+            Qt.ElideRight, 
+            self.width() - 20  # 留出一些边距
+        ))
 
     def setup_date_trigger(self):
         """根据到达日期设置定时触发器"""
@@ -54,9 +61,7 @@ class TodoListPage(Page):
             raise ValueError("LoginPage 必须有一个父窗口")
         self.todoManager = TodoManager()
         self.userManager = UserManager()
-        self.todoManager.scoreSignal.connect(lambda v:(self.addTodoItem(v),print("add",v.todoName),self.loadingUi.hide()))
-        self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
-
+        
         # 设置UI
         self.ui = TodoListFormUI()
         self.ui.setupUi(self)
@@ -64,6 +69,8 @@ class TodoListPage(Page):
         today = QDate.currentDate()
         self.ui.dateEdit.setDate(today)
         self.ui.dateEdit.setMinimumDate(today)
+        self.ui.todoListScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.todoListScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         # 连接信号与槽
         self.ui.settingsBtn.clicked.connect(self.gotoSettings)
@@ -71,6 +78,9 @@ class TodoListPage(Page):
         self.ui.CoachBtn.clicked.connect(lambda: self.parent_window.switch_to_page("coach", "right"))
         self.ui.counterBtn.clicked.connect(lambda: self.parent_window.switch_to_page("counter","right"))
         self.ui.rankBtn.clicked.connect(self.gotoRank)
+        self.todoManager.scoreSignal.connect(lambda v:(self.addTodoItem(v)),self.loadingUi.hide())
+        self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
+
 
         # # 加载todos
         # self.loadTodos()
@@ -112,7 +122,7 @@ class TodoListPage(Page):
 
     def addTodoItem(self,todo:Todo):
         """添加待办事项组件"""
-        print('add todo item:',todo.todoName)
+        # print('add todo item:',todo.todoName)
         newTodo = TodoButton(todo,self.todoManager,self)
         newTodo.clicked.connect(lambda: self.toggleTodo(newTodo))
         self.ui.verticalLayout.insertWidget(0,newTodo)
