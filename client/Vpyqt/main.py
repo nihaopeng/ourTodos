@@ -233,7 +233,7 @@ class MainWindow(QMainWindow):
 APP_KEY = "ourTodosKey"  # 全局唯一标识
 
 if __name__ == "__main__":
-    # applyUpdate(__file__)
+    applyUpdate(__file__)
     shared_mem = QSharedMemory(APP_KEY)
     app = QApplication(sys.argv)
     # 重复打开检查
