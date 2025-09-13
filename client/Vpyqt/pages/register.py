@@ -1,11 +1,14 @@
+import time
 from PySide6.QtWidgets import (
     QWidget, 
     QMessageBox
 )
+from PySide6.QtCore import QTimer
 import requests
 from core.config import getConfig
 from core.user import UserManager
 from uipy.registerForm import Ui_Form as RegisterFormUI
+from uipy.loadingForm import Ui_Form as LoadingFormUI
 from pages.page import Page
 
 class RegisterPage(Page):
@@ -17,6 +20,7 @@ class RegisterPage(Page):
         self.req = requests.session()
         
         # 设置UI
+        self.loadingUi = LoadingFormUI(self)
         self.ui = RegisterFormUI()
         self.ui.setupUi(self)
         
@@ -27,14 +31,26 @@ class RegisterPage(Page):
         # self.ui..clicked.connect(self.go_to_login)
 
     def sendCode(self):
+        self.loadingUi.show()
         email = self.ui.emailLineEdit.text()
         if email:
-            status,reason = self.userManager.sendCode(email)
-            if not status:
-                QMessageBox.warning(self, "验证码发送失败",reason)
+            QTimer.singleShot(0, lambda: self.sendCodeTask(email))
             self.ui.sendCodeBtn.setEnabled(False)
         else:
             QMessageBox.warning(self, "错误","请先填写邮箱")
+    
+    def sendCodeTask(self,email):
+        # status,reason = self.userManager.sendCode(email)
+        time.sleep(2)  # 模拟网络延迟
+        status,reason = True,""
+        if status:
+            QMessageBox.information(self, "发送成功", f"验证码已发送至 {email}，请注意查收！")
+            # 启动60秒倒计时
+            # self.countdown(60)
+            self.loadingUi.hide()
+        else:
+            QMessageBox.information(self, "发送失败", f"{reason}")
+            self.ui.sendCodeBtn.setEnabled(True)
     
     def attempt_register(self):
         """尝试注册"""
