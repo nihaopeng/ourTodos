@@ -177,7 +177,7 @@ class TodoListPage(Page):
             QMessageBox.information(self,"错误",score_or_reason)
 
     def showScore(self):
-        @run_in_thread(on_success=self.onSucShowScore)
+        @run_in_thread(on_success=self.onSucShowScore,on_error=lambda e:QMessageBox.information(self,"错误",e))
         def task():
             return self.userManager.getScore()
         task()

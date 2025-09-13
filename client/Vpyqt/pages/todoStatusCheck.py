@@ -56,7 +56,7 @@ class TodoStepWidget(QWidget):
     def delete_self(self):
         # 从数据库中删除
         self.parent.loadingUi.show()
-        @run_in_thread(on_success=self.onSucDel,on_error=lambda e:QMessageBox.information(self,"错误",e))
+        @run_in_thread(on_success=self.onSucDel,on_error=lambda e:(self.parent.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
         def task():
             return self.todoManager.delTodoStep(self.todoStepCheckBox.todo.todoUid,self.todoStepCheckBox.todoStep.stepUid)
         task()

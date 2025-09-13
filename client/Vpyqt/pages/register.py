@@ -88,7 +88,7 @@ class RegisterPage(Page):
             QMessageBox.warning(self, "输入错误", "所有字段都必须填写！")
             return
         self.loadingUi.show()
-        @run_in_thread(on_success=self.onSucRegister,on_error=None)
+        @run_in_thread(on_success=self.onSucRegister,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
         def task(email,username,password,code):
             return self.userManager.register(email,username,password,code)
         task(email,username,password,code)

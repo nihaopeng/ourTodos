@@ -51,7 +51,7 @@ class LoginPage(Page):
             # messageBox("输入错误", "用户名和密码不能为空！",self)
             return
         # 在实际应用中，这里会有身份验证逻辑
-        @run_in_thread(on_success=self.onSucLogin)
+        @run_in_thread(on_success=self.onSucLogin,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
         def task(email, password):
             time.sleep(2)  # 模拟网络延迟
             return self.userManager.login(email, password)
