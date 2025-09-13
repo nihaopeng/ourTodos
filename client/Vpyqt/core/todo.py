@@ -117,23 +117,21 @@ class RemoteTodoManager(QObject):
         return self.todos
 
     def addTodo(self, name, description, date):
-        # 创建线程和工作对象
-        self.thread = QThread()
-        self.add_worker = AddTodoWorker(name, description, date)
-        self.add_worker.moveToThread(self.thread)
-        
-        # 连接信号和槽
-        self.thread.started.connect(self.add_worker.run)
-        self.add_worker.finished.connect(self.on_genScore_finished)
-        self.add_worker.error.connect(self.on_genScore_error)
-        
-        # 自动清理
-        self.add_worker.finished.connect(self.thread.quit)
-        self.add_worker.finished.connect(self.add_worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        
-        # 启动线程
-        self.thread.start()
+        try:
+            data = {
+                "email": getConfig()["USER"]["EMAIL"],
+                "todoName": name,
+                "todoDescription": description,
+                "ddl": date,
+            }
+            res = request("add_todo", json=data)
+            
+            if res.json()["code"] != 200:
+                raise Exception(f"Failed to add todo: {res.json().get('msg', 'Unknown error')}")
+            
+            return Todo(res.json()["todoUid"],name,res.json()["score"],description,date,"True",[])
+        except Exception as e:
+            raise Exception(str(e))
 
     def delTodo(self, todoUid):
         data = {
@@ -199,17 +197,19 @@ class RemoteTodoManager(QObject):
         return res.json().get("steps", [])
 
     def todoAddStep(self, todoUid, stepUid, stepName):
+        # print("todo add step:",todoUid,stepUid,stepName)
         data = {
             "email": getConfig()["USER"]["EMAIL"],
             "todo_id": todoUid,
             "stepName": stepName
         }
+        # print("step add data:",data)
         res = request("step_add", json=data)
-        
+        # print("step add response:",res.json())
         if res.json()["code"] != 200:
             raise Exception(f"Failed to add todo step: {res.json().get('msg', 'Unknown error')}")
-        
-        return res.json()["stepUid"]
+        # print("step add response:",res.json())
+        return res.json()["stepUid"],stepName
     
     def on_genScore_finished(self,todoUid,todoName,score,todoDescription,todoDdl):
         # print("Remote todo added:", todoName, score)
@@ -480,6 +480,7 @@ class TodoManager(QObject):
         """
         给指定 uid 的 todo 项添加一个步骤字符串
         """
+        # print("todomanager:",config["USER"]["USERNAME"])
         config = getConfig()
         if config["USER"]["USERNAME"]=="":
             return self.customerTodoManager.todoAddStep(todoUid,stepUid,stepName)

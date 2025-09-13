@@ -1,8 +1,10 @@
 from enum import IntEnum
 import uuid
+from pages.page import run_in_thread
 from core.todo import TodoManager, TodoStep
 from uipy.todoStatusCheckForm import Ui_Form as todoStatusCheckFormUI
-from PySide6.QtWidgets import QDialog,QWidget,QCheckBox,QHBoxLayout,QPushButton
+from uipy.loadingForm import Ui_Form as LoadingFromUI
+from PySide6.QtWidgets import QDialog,QWidget,QCheckBox,QHBoxLayout,QPushButton,QMessageBox
 from core.todo import Todo
 
 class TodoDialogResult(IntEnum):
@@ -31,6 +33,7 @@ class TodoStepWidget(QWidget):
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # 去掉边距
+        self.parent = parent
 
         self.todoStepCheckBox = todoStepCheckBox
         self.todoManager = todoManager
@@ -43,14 +46,22 @@ class TodoStepWidget(QWidget):
         # 点击删除按钮时，删除自己
         self.delete_btn.clicked.connect(self.delete_self)
     
-    def delete_self(self):
-        # 从数据库中删除
-        self.todoManager.delTodoStep(self.todoStepCheckBox.todo.todoUid,self.todoStepCheckBox.todoStep.stepUid)
-        # 从父布局移除并销毁自己
+    def onSucDel(self,result):
         parent_layout = self.parentWidget().layout()
         if parent_layout:
             parent_layout.removeWidget(self)
         self.deleteLater()
+        self.parent.loadingUi.hide()
+    
+    def delete_self(self):
+        # 从数据库中删除
+        self.parent.loadingUi.show()
+        @run_in_thread(on_success=self.onSucDel,on_error=lambda e:QMessageBox.information(self,"错误",e))
+        def task():
+            return self.todoManager.delTodoStep(self.todoStepCheckBox.todo.todoUid,self.todoStepCheckBox.todoStep.stepUid)
+        task()
+        # 从父布局移除并销毁自己
+        
 
 class TodoStatusCheckWindow(QDialog):
     """封装好的 Todo 状态检查窗口"""
@@ -58,6 +69,7 @@ class TodoStatusCheckWindow(QDialog):
         super().__init__(parent)
         self.ui = todoStatusCheckFormUI()
         self.ui.setupUi(self)
+        self.loadingUi = LoadingFromUI(self)
 
         self.todo = todo
         self.todoManager = todoManager
@@ -85,31 +97,36 @@ class TodoStatusCheckWindow(QDialog):
     def on_upload(self):
         # print("点击了上传按钮")
         pass
+
+    def onSucStepAdd(self,result):
+        # print("step add result:",result)
+        self.loadingUi.hide()
+        stepUid,stepContent = result
+        todoStep = TodoStep(stepUid,stepContent,"True")
+        todoStepCheckBox = TodoStepCheckBox(self.todo,todoStep,self.todoManager,self)
+        todoStepWidget = TodoStepWidget(todoStepCheckBox,self.todoManager,self)
+        self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,todoStepWidget)
+        self.ui.stepLineEdit.clear()
     
     def stepAdd(self):
         stepContent = self.ui.stepLineEdit.text()
         if stepContent:
-            stepUid = self.todoManager.todoAddStep(self.todo.todoUid,"depricated",stepContent)
-            todoStep = TodoStep(stepUid,stepContent,"True")
-            todoStepCheckBox = TodoStepCheckBox(self.todo,todoStep,self.todoManager,self)
-            todoStepWidget = TodoStepWidget(todoStepCheckBox,self.todoManager,self)
-            self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,todoStepWidget)
-            self.ui.stepLineEdit.clear()
+            self.loadingUi.show()
+            @run_in_thread(on_success=self.onSucStepAdd,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+            def task():
+                # print("adding step,thread start:",stepContent)
+                return self.todoManager.todoAddStep(self.todo.todoUid,0,stepContent)
+            task()
+            # return self.todoManager.todoAddStep(self.todo.todoUid,0,stepContent)
+        else:
+            QMessageBox.information(self,"错误","步骤内容不能为空")
 
     def closeEvent(self, event):
         event.accept()
         self.done(TodoDialogResult.CLOSED)
 
-    def init(self):
-        # 设置标题、名称、描述
-        self.ui.todoNameLabel.setText(f"{self.todo.todoName} - 分数: {self.todo.score}")
-        # self.ui.todoNameLabel.setText(self.name)
-        self.ui.descriptionTextBrowser.setText(f"ddl:{self.todo.date}\n{self.todo.description}")
-
-        # 从数据库初始化
-        steps = self.todoManager.getTodoStep(self.todo.todoUid)
-        # print(steps)
-        for item in steps:
+    def onSucInit(self,result):
+        for item in result:
             stepUid = item[1]
             stepName = item[2]
             status = item[3]
@@ -118,3 +135,18 @@ class TodoStatusCheckWindow(QDialog):
             todoStepCheckBox.setChecked(True if status=="False" else False)
             todoStepWidget = TodoStepWidget(todoStepCheckBox,self.todoManager,self)
             self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,todoStepWidget)
+        self.loadingUi.hide()
+
+    def init(self):
+        # 设置标题、名称、描述
+        self.ui.todoNameLabel.setText(f"{self.todo.todoName} - 分数: {self.todo.score}")
+        # self.ui.todoNameLabel.setText(self.name)
+        self.ui.descriptionTextBrowser.setText(f"ddl:{self.todo.date}\n{self.todo.description}")
+
+        # 从数据库初始化
+        self.loadingUi.show()
+        @run_in_thread(on_success=self.onSucInit,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+        def task():
+            return self.todoManager.getTodoStep(self.todo.todoUid)
+        task()
+        

@@ -1,18 +1,16 @@
 
 from PySide6.QtWidgets import (
-    QWidget,QMessageBox,QPushButton,QCheckBox,QHBoxLayout
+    QMessageBox,QPushButton
 )
 from PySide6.QtCore import Qt
 from core.user import UserManager
-from core.config import getConfig
 from pages.todoStatusCheck import TodoDialogResult, TodoStatusCheckWindow
 from uipy.todoListForm import Ui_Form as TodoListFormUI
 from core.todo import Todo, TodoManager
 from PySide6.QtCore import QDate,QDateTime,QTimer
 from uipy.loadingForm import Ui_Form as LoadingFromUI
-from pages.rank import RankPage
 from core.todo import Todo
-from pages.page import Page
+from pages.page import Page, run_in_thread
 
 class TodoButton(QPushButton):
     """待办事项按钮"""
@@ -78,16 +76,9 @@ class TodoListPage(Page):
         self.ui.CoachBtn.clicked.connect(lambda: self.parent_window.switch_to_page("coach", "right"))
         self.ui.counterBtn.clicked.connect(lambda: self.parent_window.switch_to_page("counter","right"))
         self.ui.rankBtn.clicked.connect(self.gotoRank)
-        self.todoManager.scoreSignal.connect(lambda v:(self.addTodoItem(v)),self.loadingUi.hide())
+        self.todoManager.scoreSignal.connect(lambda v:(self.loadingUi.hide(),self.addTodoItem(v)))
         self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
 
-
-        # # 加载todos
-        # self.loadTodos()
-
-        # # 初始化分数
-        # self.showScore()
-        
     def clear_layout(self):
         # 减一避免删除掉布局的控件widget
         for i in reversed(range(self.ui.verticalLayout.count()-1)):
@@ -100,13 +91,33 @@ class TodoListPage(Page):
                 widget.setParent(None)
                 widget.deleteLater()
 
-    def loadTodos(self):
-        """重新加载"""
+    def onSucLoadTodos(self,result):
         self.clear_layout()
-        todos = self.todoManager.getTodos()
-        for todo in todos:
+        for todo in result:
             if todo.todoName and todo.description:
                 self.addTodoItem(todo)
+        # self.showScore()
+        self.loadingUi.hide()
+
+    def loadTodos(self):
+        """重新加载"""
+        @run_in_thread(on_success=self.onSucLoadTodos,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+        def task():
+            return self.todoManager.getTodos()
+        task()
+        self.loadingUi.show()
+    
+    def addTodoItem(self,todo:Todo):
+        """添加待办事项组件"""
+        # print('add todo item:',todo.todoName)
+        # print(todo)
+        newTodo = TodoButton(todo,self.todoManager,self)
+        # print("new todo:",newTodo.todo.todoName)
+        newTodo.clicked.connect(lambda: self.toggleTodo(newTodo))
+        self.ui.verticalLayout.insertWidget(0,newTodo)
+        self.ui.todoLineEdit.clear()
+        self.ui.todoDescribeTextEdit.clear()
+        self.loadingUi.hide()
 
     def addTodo(self):
         """添加待办事项"""
@@ -117,17 +128,12 @@ class TodoListPage(Page):
             QMessageBox.warning(self, "输入错误", "待办事项和描述不能为空！")
             return
         # === 用线程异步生成分数 ===
-        self.todoManager.addTodo(todoName,todoDescription,date)
         self.loadingUi.show()
-
-    def addTodoItem(self,todo:Todo):
-        """添加待办事项组件"""
-        # print('add todo item:',todo.todoName)
-        newTodo = TodoButton(todo,self.todoManager,self)
-        newTodo.clicked.connect(lambda: self.toggleTodo(newTodo))
-        self.ui.verticalLayout.insertWidget(0,newTodo)
-        self.ui.todoLineEdit.clear()
-        self.ui.todoDescribeTextEdit.clear()
+        @run_in_thread(on_success=self.addTodoItem,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+        def task(todoName,todoDescription,date):
+            return self.todoManager.addTodo(todoName,todoDescription,date)
+        task(todoName,todoDescription,date)
+        # self.todoManager.addTodo(todoName,todoDescription,date)
 
     def toggleTodo(self,btn: TodoButton):
         # 用按钮本身的 name/description，而不是重新从输入框读
@@ -144,24 +150,37 @@ class TodoListPage(Page):
         elif result == TodoDialogResult.DELETED:
             self.delTodo(btn)
 
+    def onSucDelTodo(self,result):
+        self.loadingUi.hide()
+
     def delTodo(self, btn: TodoButton):
         """删除待办事项"""
         # print("用户删除任务:", btn.todo.todoName)
         self.ui.verticalLayout.removeWidget(btn)  # 从布局移除
         btn.deleteLater()                         # 真正销毁
         # 从数据库销毁
-        self.todoManager.delTodo(btn.todo.todoUid)
+        self.loadingUi.show()
+        @run_in_thread(on_success=self.onSucDelTodo,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+        def task(todoUid):
+            return self.todoManager.delTodo(todoUid)
+        task(btn.todo.todoUid)
     
     def gotoSettings(self):
         """跳转到注册页面"""
         self.parent_window.switch_to_page("settings", "right")
 
-    def showScore(self):
-        status,score_or_reason = self.userManager.getScore()
+    def onSucShowScore(self,result):
+        status,score_or_reason = result
         if status:
             self.ui.scoreLabel.setText("score:"+score_or_reason)
         else:
             QMessageBox.information(self,"错误",score_or_reason)
+
+    def showScore(self):
+        @run_in_thread(on_success=self.onSucShowScore)
+        def task():
+            return self.userManager.getScore()
+        task()
     
     def gotoRank(self):
         # self.parent_window.register_page("rank", RankPage(self.parent_window))

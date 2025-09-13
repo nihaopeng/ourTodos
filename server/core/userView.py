@@ -135,6 +135,16 @@ def set_profile():
     query_db("UPDATE users SET profile=? WHERE email=?", (profile, email))
     return jsonify({"code": 200, "msg": "profile updated successfully."})
 
+@userViewBp.route("/get_profile", methods=["POST"])
+@login_required
+def get_profile():
+    data = request.get_json()
+    email = data.get("email")
+    profile = query_db("SELECT profile FROM users WHERE email=?", (email,), one=True)
+    if profile:
+        return jsonify({"code": 200, "profile": profile[0]})
+    return jsonify({"code": 404, "msg": "user not found"})
+
 # ========== 积分相关接口 ==========
 @userViewBp.route("/get_user_score", methods=["POST"])
 @login_required

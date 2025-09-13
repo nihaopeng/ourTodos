@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (
     QWidget,QColorDialog,QMessageBox
 )
+from core.config import getConfig, request
 from core.settings import SettingsManager
 from uipy.settingsForm import Ui_Form as SettingsFormUI
 from pages.page import Page
@@ -83,7 +84,18 @@ class SettingsPage(Page):
         config = self.settingsManager.getSettings()
         self.ui.usernameLineEdit.setText(config.get("USER", {}).get("USERNAME", ""))
         self.ui.passwordLineEdit.setText(config.get("USER", {}).get("PASSWORD", ""))
-        self.ui.profileTextEdit.setText(config.get("USER", {}).get("PERSONALPROFILE", ""))
+        if config.get("USER", {}).get("USERNAME", "")=="":
+            self.ui.profileTextEdit.setText(config.get("USER", {}).get("PERSONALPROFILE", ""))
+        else:
+            data = {
+                "email": getConfig()["USER"]["EMAIL"]
+            }
+            res = request("get_profile", json=data)
+            if res.json()["code"] != 200:
+                QMessageBox.information(self, "错误", res.json().get("msg","未知错误"))
+                self.ui.profileTextEdit.setText("")
+            else:
+                self.ui.profileTextEdit.setText(res.json().get("profile",""))
         self.ui.remoteUrlLineEdit.setText(config.get("REMOTE", {}).get("URL", ""))
         self.ui.providerLineEdit.setText(config.get("LLM", {}).get("PROVIDER", ""))
         self.ui.urlLineEdit.setText(config.get("LLM", {}).get("URL", ""))

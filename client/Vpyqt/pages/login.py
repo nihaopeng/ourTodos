@@ -1,13 +1,16 @@
 
+import time
 from PySide6.QtWidgets import (
-    QWidget,QMessageBox
+    QMessageBox
 )
-from pages.page import Page
+from PySide6.QtCore import (
+    QTimer
+)
+from pages.page import Page, run_in_thread
 from core.config import getConfig,setConfig
 from core.user import UserManager
-from pages.settings import SettingsPage
-from pages.todoList import TodoListPage
 from uipy.loginForm import Ui_Form as LoginFormUI
+from uipy.loadingForm import Ui_Form as LoadingFormUI
 
 class LoginPage(Page):
     """登录页面"""
@@ -20,6 +23,7 @@ class LoginPage(Page):
         # 设置UI
         self.ui = LoginFormUI()
         self.ui.setupUi(self)
+        self.loadingUi = LoadingFormUI(self)
         self.ui.emailLineEdit.setText(getConfig()["USER"]["EMAIL"])
         self.ui.passwordLineEdit.setText(getConfig()["USER"]["PASSWORD"])
 
@@ -27,6 +31,15 @@ class LoginPage(Page):
         self.ui.loginConfirmBtn.clicked.connect(self.attempt_login)
         self.ui.registerBtn.clicked.connect(self.go_to_register)
         self.ui.customerLoginBtn.clicked.connect(self.customLogin)
+
+    def onSucLogin(self,result):
+        if result is None:
+            QMessageBox.warning(self, "登录失败", "用户名或密码错误！")
+            return
+        self.loadingUi.hide()
+        self.parent_window.switch_to_page("todoList", "right")
+        self.parent_window.show_desktop()
+        self.parent_window.set_desktop_window()
     
     def attempt_login(self):
         """尝试登录"""
@@ -37,18 +50,13 @@ class LoginPage(Page):
             QMessageBox.warning(self, "输入错误", "用户名和密码不能为空！")
             # messageBox("输入错误", "用户名和密码不能为空！",self)
             return
-            
         # 在实际应用中，这里会有身份验证逻辑
-        username = self.userManager.login(email,password)
-        if username:
-            # self.parent_window.register_page("todoList", TodoListPage(self.parent_window))
-            # QMessageBox.critical(self, "登录", "")
-            self.parent_window.switch_to_page("todoList", "right")
-            self.parent_window.show_desktop()
-            self.parent_window.set_desktop_window()
-        else:
-            QMessageBox.critical(self, "登录失败", "用户名或密码错误！")
-            # messageBox("登录失败", "用户名或密码错误！",self)
+        @run_in_thread(on_success=self.onSucLogin)
+        def task(email, password):
+            time.sleep(2)  # 模拟网络延迟
+            return self.userManager.login(email, password)
+        task(email, password)
+        self.loadingUi.show()
     
     def customLogin(self):
         """跳转到客户登录页面"""

@@ -1,12 +1,12 @@
 
 from PySide6.QtWidgets import (
-    QWidget,QPushButton
+    QMessageBox,QPushButton
 )
 from core.config import getConfig
 from core.rank import RankManager
 from uipy.rankForm import Ui_Form as RankFormUI
 from uipy.loadingForm import Ui_Form as LoadingFormUI
-from pages.page import Page
+from pages.page import Page, run_in_thread
 
 class RankPage(Page):
     """登录页面"""
@@ -35,20 +35,27 @@ class RankPage(Page):
         # print("跳转到注册页面")
         self.parent_window.switch_to_page("todoList", "left")
 
-    def loadRank(self):
-        if getConfig()["USER"]["EMAIL"]=="":
-            return
-        # 从远端加载排名数据
-        rank = self.rankManager.getRank()
+    def onSucLoadRank(self,result):
+        self.loadingUi.hide()
         self.clear_layout()
         config = getConfig()
-        for i,user in enumerate(rank):
+        for i,user in enumerate(result):
             userBtn = QPushButton(f"{user["username"]} / score:{user["score"]}")
             if user["username"] == config["USER"]["USERNAME"]:
                 userBtn.setStyleSheet("background-color:red;")
                 self.ui.rankLabel.setText(f"rank:{i+1}")
             self.ui.verticalLayout.insertWidget(self.ui.verticalLayout.count()-1,userBtn)
         self.loadingUi.hide()
+
+    def loadRank(self):
+        if getConfig()["USER"]["EMAIL"]=="":
+            return
+        # 从远端加载排名数据
+        self.loadingUi.show()
+        @run_in_thread(on_success=self.onSucLoadRank,on_error=lambda e:(self.loadingUi.hide(),QMessageBox.information(self,"错误",e)))
+        def task():
+            return self.rankManager.getRank()
+        task()
 
     def clear_layout(self):
         # 减一避免删除掉布局的控件widget
@@ -64,6 +71,5 @@ class RankPage(Page):
                 
     def fresh(self):
         """刷新排名"""
-        self.loadingUi.show()
         self.loadRank()
-        self.loadingUi.hide()
+        

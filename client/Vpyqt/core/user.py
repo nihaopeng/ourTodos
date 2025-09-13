@@ -3,7 +3,6 @@ import requests
 from core.config import getConfig, setConfig,request
 
 class UserManager():
-
     def login(self,email,password):
         data = {
             "email":email,
@@ -41,6 +40,7 @@ class UserManager():
         }
         res = request("send_verification_code",json=data)
         res = res.json()
+        print(res)
         if res["code"]==200:
             return True,res["msg"]
         else:
