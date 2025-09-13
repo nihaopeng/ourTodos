@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
         # 1. 把 parent 设置回桌面（0 表示 HWND_DESKTOP）
         windll.user32.SetParent(win_hwnd, 0)
         # 2. 恢复窗口 flags（根据需要，这里我给个普通窗口示例）
-        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)  
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
         # 你可以改成 Qt.WindowStaysOnTopHint 等等
         # 3. 重新显示
         self.show()
@@ -203,7 +203,7 @@ class MainWindow(QMainWindow):
     def set_desktop_window(self):
         # 推荐无边框 + 透明背景（按需）
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Widget)  # 子窗口用 Qt.Widget 即可
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)  # 子窗口用 Qt.Widget 即可
         win_hwnd = self.winId()
         """根据 DefView 所在位置，决定如何 SetParent"""
         shell, parent, cls = self._find_shell_defview()
