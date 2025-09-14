@@ -6,7 +6,9 @@
  * @param {Object} headers - 额外的请求头
  * @returns {Promise<Object>} - 返回 JSON 响应
  */
-async function httpRequest(url, method = 'GET', data = null, headers = {}) {
+const baseUrl = 'http://141.11.238.11:5000'; // 替换为你的后端服务器地址
+
+export async function httpRequest(url, method = 'GET', data = null, headers = {}) {
     const defaultHeaders = {
         'Content-Type': 'application/json',
         ...headers
@@ -23,7 +25,7 @@ async function httpRequest(url, method = 'GET', data = null, headers = {}) {
     }
 
     try {
-        const response = await fetch(url, options);
+        const response = await fetch(`${baseUrl}${url}`, options);
 
         if (!response.ok) {
             throw new Error(`HTTP 错误！状态码: ${response.status}`);
@@ -38,5 +40,3 @@ async function httpRequest(url, method = 'GET', data = null, headers = {}) {
     }
 }
 
-// 导出模块（ES Module 写法）
-export default httpRequest;

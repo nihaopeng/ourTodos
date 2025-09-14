@@ -5,6 +5,7 @@ from core.todo import todoViewbp
 from core.dbOp import DB_PATH,init_db
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = "my_secret_key"   # 必须设置，用于签名 cookie
 app.config['MAIL_SERVER'] = 'smtp.qq.com'  # 你的邮件服务器地址
 app.config['MAIL_PORT'] = 587
