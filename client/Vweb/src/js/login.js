@@ -15,5 +15,13 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         "email":email, "password":password 
     };
     const result = await httpRequest('/login', 'POST', data);
-    console.log(result);
+    console.log(typeof(result),result);
+    if (result.code === 200) {
+        alert("登录成功！");
+        // 登录成功后跳转到待办事项页面
+        localStorage.setItem("userInfo", JSON.stringify({"email":email,"username":result.username}));
+        window.location.href = "todoList.html";
+    } else {
+        alert("登录失败：" + result.message);
+    }
 });

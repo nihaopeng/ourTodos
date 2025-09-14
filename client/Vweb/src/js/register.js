@@ -1,6 +1,9 @@
 // 发送验证码按钮
-document.getElementById("sendCodeBtn").addEventListener("click", function () {
+import { httpRequest } from '../../core/http.js';
+
+document.getElementById("sendCodeBtn").addEventListener("click", async function () {
     const email = document.getElementById("email").value.trim();
+    const result = await httpRequest('/send_code', 'POST', { email: email });
     if (!email) {
         alert("请先输入邮箱！");
         return;

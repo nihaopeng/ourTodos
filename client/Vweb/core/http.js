@@ -16,7 +16,8 @@ export async function httpRequest(url, method = 'GET', data = null, headers = {}
 
     const options = {
         method,
-        headers: defaultHeaders
+        headers: defaultHeaders,
+        credentials: 'include' // 如果需要发送 cookies
     };
 
     // 如果有请求体且不是 GET，就序列化为 JSON
