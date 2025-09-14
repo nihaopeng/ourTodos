@@ -54,6 +54,7 @@ class TodoListPage(Page):
     """登录页面"""
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         self.parent_window = parent
         if self.parent_window is None:
             raise ValueError("LoginPage 必须有一个父窗口")
@@ -78,6 +79,9 @@ class TodoListPage(Page):
         self.ui.rankBtn.clicked.connect(self.gotoRank)
         self.todoManager.scoreSignal.connect(lambda v:(self.loadingUi.hide(),self.addTodoItem(v)))
         self.todoManager.errorSignal.connect(lambda v:(self.loadingUi.hide(),QMessageBox.information(self,"错误",v)))
+        self.parent.pages["todoStatusCheck"].closeSignal.connect(self.todoStatusClose)
+        self.parent.pages["todoStatusCheck"].deleteSignal.connect(self.todoStatusDelete)
+        self.parent.pages["todoStatusCheck"].finishSignal.connect(self.todoStatusFinish)
 
     def clear_layout(self):
         # 减一避免删除掉布局的控件widget
@@ -93,6 +97,7 @@ class TodoListPage(Page):
 
     def onSucLoadTodos(self,result):
         self.clear_layout()
+        sorted(result,key=lambda x:(x.status,x.date))  # 先按状态再按日期排序
         for todo in result:
             if todo.todoName and todo.description:
                 self.addTodoItem(todo)
@@ -134,21 +139,41 @@ class TodoListPage(Page):
             return self.todoManager.addTodo(todoName,todoDescription,date)
         task(todoName,todoDescription,date)
         # self.todoManager.addTodo(todoName,todoDescription,date)
+        
+    def todoStatusClose(self):
+        self.parent.switch_to_page("todoList","left")
+        
+    def todoStatusDelete(self,btn: TodoButton):
+        self.delTodo(btn)
+        self.parent.switch_to_page("todoList","left")
+        
+    def todoStatusFinish(self,btn: TodoButton):
+        self.todoManager.finishTodo(btn.todo.todoUid)
+        btn.setText(f"{btn.todo.todoName} -{btn.todo.date} {"√"}")
+        btn.todo.status = "False"
+        self.ui.todoLineEdit.clear()
+        self.ui.todoDescribeTextEdit.clear()
+        self.showScore()
+        self.parent.switch_to_page("todoList","left")
 
     def toggleTodo(self,btn: TodoButton):
         # 用按钮本身的 name/description，而不是重新从输入框读
-        dialog = TodoStatusCheckWindow(btn.todo,self.todoManager, self)
-        result = dialog.exec()   # 模态显示
+        # dialog = TodoStatusCheckWindow(btn.todo,self.todoManager, self)
+        # result = dialog.exec()   # 模态显示
 
-        if result == TodoDialogResult.FINISHED:
-            self.todoManager.finishTodo(btn.todo.todoUid)
-            btn.setText(f"{btn.todo.todoName} -{btn.todo.date} {"√"}")
-            btn.todo.status = "False"
-            self.ui.todoLineEdit.clear()
-            self.ui.todoDescribeTextEdit.clear()
-            self.showScore()
-        elif result == TodoDialogResult.DELETED:
-            self.delTodo(btn)
+        # if result == TodoDialogResult.FINISHED:
+        #     self.todoManager.finishTodo(btn.todo.todoUid)
+        #     btn.setText(f"{btn.todo.todoName} -{btn.todo.date} {"√"}")
+        #     btn.todo.status = "False"
+        #     self.ui.todoLineEdit.clear()
+        #     self.ui.todoDescribeTextEdit.clear()
+        #     self.showScore()
+        # elif result == TodoDialogResult.DELETED:
+        #     self.delTodo(btn)
+        self.parent.pages["todoStatusCheck"].todo = btn.todo
+        self.parent.pages["todoStatusCheck"].todoBtn = btn
+        self.parent.pages["todoStatusCheck"].todoManager = self.todoManager
+        self.parent.switch_to_page("todoStatusCheck","right")
 
     def onSucDelTodo(self,result):
         self.loadingUi.hide()

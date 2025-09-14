@@ -36,6 +36,13 @@ class TaskRunner(QRunnable):
             self.signals.finished.emit(result)
         except Exception as e:
             self.signals.error.emit(str(e))
+        finally:
+            try:
+                self.signals.finished.disconnect()
+                self.signals.error.disconnect()
+            except TypeError:
+                pass
+            self.signals = None  # 释放引用
 
 def run_in_thread(on_success=None, on_error=None):
     def decorator(func):

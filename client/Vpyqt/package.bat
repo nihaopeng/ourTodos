@@ -1,4 +1,5 @@
-pyinstaller main.spec
+pyinstaller -w main.py -n main
+pyinstaller -F -w updater.py -n ourTodos -i ui\src\task.ico
 
 set dist_dir=dist\main\
 set core_dir=%dist_dir%_internal\core\
@@ -24,3 +25,4 @@ copy  %toml_file% %core_dir%
 echo "moving figures and wav to figures directory"
 xcopy /E /I /Y %figures_source_dir% %figures_dir%
 xcopy /E /I /Y %wav_source_dir% %wav_dir%
+copy dist\ourTodos.exe %dist_dir%ourTodos.exe

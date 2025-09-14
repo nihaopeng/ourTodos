@@ -20,6 +20,7 @@ from pages.register import RegisterPage
 from pages.settings import SettingsPage
 from pages.counter import CounterPage
 from pages.coach import CoachPage  # 假设你有一个 CoachPage 类
+from pages.todoStatusCheck import TodoStatusCheckWindow
 
 # 定义按键码
 VK_LWIN = 0x5B
@@ -91,12 +92,12 @@ class MainWindow(QMainWindow):
         # 注册页面
         self.register_page("login", LoginPage(self))
         self.register_page("register", RegisterPage(self))
-        self.register_page("settings", SettingsPage(self))  
+        self.register_page("settings", SettingsPage(self))
+        self.register_page("todoStatusCheck", TodoStatusCheckWindow(self))  # 占位，实际创建在需要时  
         self.register_page("todoList", TodoListPage(self)) # 登录界面后再重新创建
         self.register_page("coach", CoachPage(self))  # 注册教练页面
         self.register_page("counter", CounterPage(self))
         self.register_page("rank", RankPage(self))  # 占位，实际创建在需要时
-        
         
         # 初始显示登录页面
         self.switch_to_page("login", "right")
@@ -206,7 +207,7 @@ class MainWindow(QMainWindow):
     # --- 在你的 MainWindow 里调用 ---
     def set_desktop_window(self):
         # 推荐无边框 + 透明背景（按需）
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        # self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)  # 子窗口用 Qt.Widget 即可
         win_hwnd = self.winId()
         """根据 DefView 所在位置，决定如何 SetParent"""
@@ -216,7 +217,8 @@ class MainWindow(QMainWindow):
             return False
         user32.SetParent(win_hwnd, shell)
         # print(f"嵌入到 SHELLDLL_DefView: hwnd={shell}")
-        user32.ShowWindow(win_hwnd, 1)
+        user32.ShowWindow(win_hwnd, 1)  # SW_SHOWNORMAL
+        user32.UpdateWindow(win_hwnd)
         self.show()
 
     def show_desktop(self):

@@ -1,10 +1,11 @@
 from enum import IntEnum
 import uuid
-from pages.page import run_in_thread
+from pages.page import Page, run_in_thread
 from core.todo import TodoManager, TodoStep
 from uipy.todoStatusCheckForm import Ui_Form as todoStatusCheckFormUI
 from uipy.loadingForm import Ui_Form as LoadingFromUI
 from PySide6.QtWidgets import QDialog,QWidget,QCheckBox,QHBoxLayout,QPushButton,QMessageBox
+from PySide6.QtCore import Signal
 from core.todo import Todo
 
 class TodoDialogResult(IntEnum):
@@ -63,36 +64,37 @@ class TodoStepWidget(QWidget):
         # 从父布局移除并销毁自己
         
 
-class TodoStatusCheckWindow(QDialog):
+class TodoStatusCheckWindow(Page):
+    closeSignal = Signal()
+    deleteSignal = Signal(object)
+    finishSignal = Signal(object)
     """封装好的 Todo 状态检查窗口"""
-    def __init__(self, todo:Todo,todoManager:TodoManager, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = todoStatusCheckFormUI()
         self.ui.setupUi(self)
         self.loadingUi = LoadingFromUI(self)
 
-        self.todo = todo
-        self.todoManager = todoManager
-
-        # 初始化ui
-        self.init()
+        self.todoBtn = None  # 关联的 TodoButton
+        self.todo = None
+        self.todoManager = None
 
         # 这里你可以额外绑定按钮功能
         self.ui.todoFinishedBtn.clicked.connect(self.on_finish)
         self.ui.todoDeleteBtn.clicked.connect(self.on_delete)
         self.ui.fileUploadBtn.clicked.connect(self.on_upload)
         self.ui.stepAddBtn.clicked.connect(self.stepAdd)
+        self.ui.back2homeBtn.clicked.connect(self.close)
         # print(self.status)
-        self.ui.todoFinishedBtn.setEnabled(True if self.todo.status=="True" else False)
-        self.ui.fileUploadBtn.setEnabled(True if self.todo.status=="True" else False)
 
     def on_finish(self):
         # print(f"任务已完成: {self.ui.todoNameLabel.text()}")
-        self.done(TodoDialogResult.FINISHED)
+        self.finishSignal.emit(self.todoBtn)
 
     def on_delete(self):
         # print(f"任务删除: {self.ui.todoNameLabel.text()}")
-        self.done(TodoDialogResult.DELETED)   # 关闭窗口并返回 QDialog.Rejected
+        # self.done(TodoDialogResult.DELETED)   # 关闭窗口并返回 QDialog.Rejected
+        self.deleteSignal.emit(self.todoBtn)
 
     def on_upload(self):
         # print("点击了上传按钮")
@@ -123,7 +125,16 @@ class TodoStatusCheckWindow(QDialog):
 
     def closeEvent(self, event):
         event.accept()
-        self.done(TodoDialogResult.CLOSED)
+        # self.done(TodoDialogResult.CLOSED)
+        self.closeSignal.emit()
+        
+    def clear_layout(self):
+        # self.loadingUi.deleteLater()
+        for i in reversed(range(self.ui.verticalLayout.count()-1)):
+            widget = self.ui.verticalLayout.itemAt(i).widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
 
     def onSucInit(self,result):
         for item in result:
@@ -149,4 +160,12 @@ class TodoStatusCheckWindow(QDialog):
         def task():
             return self.todoManager.getTodoStep(self.todo.todoUid)
         task()
+        
+    def fresh(self):
+        """刷新页面"""
+        self.clear_layout()
+        self.init()
+        self.ui.todoFinishedBtn.setEnabled(True if self.todo.status=="True" else False)
+        self.ui.fileUploadBtn.setEnabled(True if self.todo.status=="True" else False)
+        # print("刷新页面")
         

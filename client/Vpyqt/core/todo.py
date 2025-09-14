@@ -129,7 +129,7 @@ class RemoteTodoManager(QObject):
             if res.json()["code"] != 200:
                 raise Exception(f"Failed to add todo: {res.json().get('msg', 'Unknown error')}")
             
-            return Todo(res.json()["todoUid"],name,res.json()["score"],description,date,"True",[])
+            return Todo(res.json()["todoUid"],name,description,res.json()["score"],date,"True",[])
         except Exception as e:
             raise Exception(str(e))
 

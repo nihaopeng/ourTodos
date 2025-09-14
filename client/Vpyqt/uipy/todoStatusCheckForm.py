@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'todoStatusCheck.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -86,6 +86,11 @@ class Ui_Form(object):
         self.stepLineEdit.setGeometry(QRect(80, 200, 221, 21))
         self.stepLineEdit.setStyleSheet(u"border:1px solid black;\n"
 "border-radius:5px;")
+        self.back2homeBtn = QToolButton(Form)
+        self.back2homeBtn.setObjectName(u"back2homeBtn")
+        self.back2homeBtn.setGeometry(QRect(10, 10, 61, 41))
+        self.back2homeBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.back2homeBtn.setStyleSheet(u"")
 
         self.retranslateUi(Form)
 
@@ -100,5 +105,6 @@ class Ui_Form(object):
         self.fileUploadBtn.setText(QCoreApplication.translate("Form", u"\u4e0a\u4f20\u6750\u6599", None))
         self.label_2.setText(QCoreApplication.translate("Form", u"file:", None))
         self.stepAddBtn.setText(QCoreApplication.translate("Form", u"\uff0b", None))
+        self.back2homeBtn.setText(QCoreApplication.translate("Form", u"<-back", None))
     # retranslateUi
 

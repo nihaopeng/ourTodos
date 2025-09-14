@@ -73,8 +73,8 @@ class LoginPage(Page):
         self.parent_window.switch_to_page("todoList", "right")
         self.parent_window.show_desktop()
         self.parent_window.set_desktop_window()
-        input()
-        self.parent_window.unset_desktop_window()
+        # input()
+        # self.parent_window.unset_desktop_window()
     
     def go_to_register(self):
         """跳转到注册页面"""
