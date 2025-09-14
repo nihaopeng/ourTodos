@@ -1,4 +1,4 @@
-import httpRequest from '../../core/http.js';
+import { httpRequest } from '../../core/http.js';
 
 document.getElementById("registerBtn").addEventListener("click", function () {
     // 跳转到注册页面
@@ -11,7 +11,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    data = { 
+    const data = { 
         "email":email, "password":password 
     };
     const result = await httpRequest('/login', 'POST', data);
