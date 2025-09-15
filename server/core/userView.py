@@ -3,7 +3,6 @@ import random
 import string
 import time
 from flask import jsonify, request, Blueprint
-from flask_jwt_extended import create_access_token, jwt_required
 from core.dbOp import query_db
 from flask import request, jsonify, session
 from flask_mail import Mail, Message
@@ -58,18 +57,13 @@ def login_view():
 
     user = query_db("SELECT * FROM users WHERE email=? AND password=?", (email, password), one=True)
     if user:
-        access_token = create_access_token(identity=email)
-        return jsonify({
-            "code": 200,
-            "msg": "ok",
-            "token": access_token,
-            "username": user[1]
-        })
-    return jsonify({"code": 401, "msg": "wrong account/password"}), 401
+        session["email"] = email
+        return jsonify({"code": 200, "msg": "ok","username":user[1]})
+    return jsonify({"code": 401, "msg": "wrong account/password"})
 
 # 登出接口
 @userViewBp.route("/logout", methods=["POST"])
-@jwt_required()
+@login_required
 def logout():
     session.pop("email", None)
     return jsonify({"code": 200, "msg": "logout"})
@@ -115,7 +109,7 @@ def regist_view():
 
 # 修改用户名和密码
 @userViewBp.route("/update_username_and_password", methods=["POST"])
-@jwt_required()
+@login_required
 def update_username():
     data = request.get_json()
     email = data.get("email")
@@ -132,7 +126,7 @@ def update_username():
     return jsonify({"code": 200, "msg": "Username updated successfully."})
 
 @userViewBp.route("/set_profile", methods=["POST"])
-@jwt_required()
+@login_required
 def set_profile():
     data = request.get_json()
     email = data.get("email")
@@ -142,7 +136,7 @@ def set_profile():
     return jsonify({"code": 200, "msg": "profile updated successfully."})
 
 @userViewBp.route("/get_profile", methods=["POST"])
-@jwt_required()
+@login_required
 def get_profile():
     data = request.get_json()
     email = data.get("email")
@@ -153,7 +147,7 @@ def get_profile():
 
 # ========== 积分相关接口 ==========
 @userViewBp.route("/get_user_score", methods=["POST"])
-@jwt_required()
+@login_required
 def get_user_score_view():
     data = request.get_json()
     email = data.get("email")
@@ -163,7 +157,7 @@ def get_user_score_view():
     return jsonify({"code": 404, "msg": "user not found"})
 
 @userViewBp.route("/get_scores", methods=["POST"])
-@jwt_required()
+@login_required
 def get_scores_view():
     users = query_db("SELECT email, username, score FROM users")
     results = [{"email": u[0], "username": u[1], "score": u[2]} for u in users]

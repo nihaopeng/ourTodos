@@ -13,7 +13,7 @@ from core.config import getConfig
 todoViewbp = Blueprint('todoView',__name__)
 
 @todoViewbp.route("/get_todos", methods=["POST"])
-@jwt_required()
+@login_required
 def get_todos_view():
     data = request.get_json()
     email = data.get("email")
@@ -51,7 +51,7 @@ def genScore(profile,todoDesc):
         raise e
 
 @todoViewbp.route("/add_todo", methods=["POST"])
-@jwt_required()
+@login_required
 def add_todo_view():
     data = request.get_json()
     name = data.get("todoName")
@@ -80,7 +80,7 @@ def add_todo_view():
     
 
 @todoViewbp.route("/del_todo", methods=["POST"])
-@jwt_required()
+@login_required
 def del_todo_view():
     data = request.get_json()
     email = data.get("email")
@@ -90,7 +90,7 @@ def del_todo_view():
 
 
 @todoViewbp.route("/todo_complete", methods=["POST"])
-@jwt_required()
+@login_required
 def todo_complete_view():
     data = request.get_json()
     todo_id = data.get("todo_id")
@@ -110,7 +110,7 @@ def todo_complete_view():
     return jsonify({"code": 200, "msg": "ok"})
 
 @todoViewbp.route("/get_steps", methods=["POST"])
-@jwt_required()
+@login_required
 def get_steps_view():
     data = request.get_json()
     todo_id = data.get("todo_id")
@@ -119,7 +119,7 @@ def get_steps_view():
     return jsonify({"code": 200, "msg": "ok","steps":steps})
 
 @todoViewbp.route("/step_add", methods=["POST"])
-@jwt_required()
+@login_required
 def step_add_view():
     data = request.get_json()
     todo_id = data.get("todo_id")
@@ -131,7 +131,7 @@ def step_add_view():
     return jsonify({"code": 200, "msg": "ok","stepUid":stepUid})
 
 @todoViewbp.route("/step_del", methods=["POST"])
-@jwt_required()
+@login_required
 def step_del_view():
     data = request.get_json()
     stepUid = data.get("stepUid")
@@ -141,7 +141,7 @@ def step_del_view():
     return jsonify({"code": 200, "msg": "ok"})
 
 @todoViewbp.route("/step_change", methods=["POST"])
-@jwt_required()
+@login_required
 def step_change_view():
     data = request.get_json()
     stepUid = data.get("stepUid")

@@ -14,16 +14,8 @@ def setConfig(config):
         toml.dump(config, f)
     return
 
-def request(route: str, json: dict, token: str = getConfig()["USER"]["TOKEN"]):
-    headers = {}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
-    return req.post(
-        f"{getConfig()['REMOTE']['URL']}/{route}",
-        json=json,
-        headers=headers
-    )
+def request(route:str,json:dict):
+    return req.post(f"{getConfig()["REMOTE"]["URL"]}/{route}",json=json)
 
 # def finishTodo(uid):
 #     """

@@ -4,12 +4,9 @@ from core.userView import userViewBp,mail
 from core.todo import todoViewbp
 from core.dbOp import DB_PATH,init_db
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
-CORS(app)
-app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # ✅ 用于加密 token
-jwt = JWTManager(app)
+CORS(app, supports_credentials=True)
 app.secret_key = "my_secret_key"   # 必须设置，用于签名 cookie
 app.config['MAIL_SERVER'] = 'smtp.qq.com'  # 你的邮件服务器地址
 app.config['MAIL_PORT'] = 587

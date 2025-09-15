@@ -6,12 +6,12 @@
  * @param {Object} headers - 额外的请求头
  * @returns {Promise<Object>} - 返回 JSON 响应
  */
-const baseUrl = 'http://141.11.238.11:5000'; // 替换为你的后端服务器地址
+// const baseUrl = 'http://141.11.238.11:5000'; // 替换为你的后端服务器地址
+const baseUrl = 'http://127.0.0.1:5000';
 
 export async function httpRequest(url, method = 'GET', data = null, headers = {}) {
     const defaultHeaders = {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers
     };
 
