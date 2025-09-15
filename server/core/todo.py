@@ -2,7 +2,7 @@
 from datetime import datetime
 import uuid
 from flask import jsonify, request,Blueprint
-from flask_jwt_extended import jwt_required
+# from flask_jwt_extended import jwt_required
 
 from core.dbOp import connect, query_db
 from core.userView import login_required

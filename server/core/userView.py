@@ -43,7 +43,7 @@ def login_required(f):
     def decorated(*args, **kwargs):
         data = request.get_json()
         email = data.get("email")
-        # print(session.get("email"),email)
+        print(session.get("email"),email)
         if session.get("email")!=email:
             return jsonify({"code": 401, "msg": "Unauthorized"}), 401
         return f(*args, **kwargs)

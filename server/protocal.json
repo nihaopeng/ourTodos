@@ -1,0 +1,242 @@
+[
+  {
+    "url": "/send_verification_code",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "msg": "Verification code sent successfully."
+    }
+  },
+  {
+    "url": "/regist",
+    "request": {
+      "username": "张三",
+      "email": "user@example.com",
+      "password": "123456",
+      "code": "AB12CD"
+    },
+    "response": {
+      "code": 200,
+      "msg": "Registration successful."
+    }
+  },
+  {
+    "url": "/login",
+    "request": {
+      "email": "user@example.com",
+      "password": "123456"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok",
+      "username": "张三"
+    }
+  },
+  {
+    "url": "/logout",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "msg": "logout"
+    }
+  },
+  {
+    "url": "/update_username_and_password",
+    "request": {
+      "email": "user@example.com",
+      "username": "李四",
+      "password": "newpass123"
+    },
+    "response": {
+      "code": 200,
+      "msg": "Username updated successfully."
+    }
+  },
+  {
+    "url": "/set_profile",
+    "request": {
+      "email": "user@example.com",
+      "profile": "热爱编程和旅行"
+    },
+    "response": {
+      "code": 200,
+      "msg": "profile updated successfully."
+    }
+  },
+  {
+    "url": "/get_profile",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "profile": "热爱编程和旅行",
+      "msg": "ok"
+    }
+  },
+  {
+    "url": "/get_user_score",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "score": 120
+    }
+  },
+  {
+    "url": "/get_scores",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "data": [
+        {
+          "email": "a@example.com",
+          "username": "张三",
+          "score": 120
+        },
+        {
+          "email": "b@example.com",
+          "username": "李四",
+          "score": 95
+        }
+      ]
+    }
+  },
+  {
+    "url": "/get_todos",
+    "request": {
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok",
+      "todos": [
+        {
+          "todoid": 1,
+          "content": "学习Python",
+          "describe": "完成Flask项目",
+          "ddl": "2025-09-20",
+          "score": 10,
+          "status": "True",
+          "email": "user@example.com"
+        },
+        {
+          "todoid": 2,
+          "content": "健身",
+          "describe": "跑步5公里",
+          "ddl": "2025-09-18",
+          "score": 5,
+          "status": "False",
+          "email": "user@example.com"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/add_todo",
+    "request": {
+      "todoName": "读书",
+      "todoDescription": "阅读《三体》50页",
+      "ddl": "2025-09-25",
+      "email": "user@example.com"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok",
+      "todoUid": 3,
+      "score": 8
+    }
+  },
+  {
+    "url": "/del_todo",
+    "request": {
+      "email": "user@example.com",
+      "todo_id": 3
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok"
+    }
+  },
+  {
+    "url": "/todo_complete",
+    "request": {
+      "email": "user@example.com",
+      "todo_id": 1
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok"
+    }
+  },
+  {
+    "url": "/get_steps",
+    "request": {
+      "email": "user@example.com",
+      "todo_id": 1
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok",
+      "steps": [
+        {
+          "id": 1,
+          "stepUid": "uuid-1111",
+          "stepName": "安装Python",
+          "status": "False",
+          "todoid": 1
+        },
+        {
+          "id": 2,
+          "stepUid": "uuid-2222",
+          "stepName": "学习Flask",
+          "status": "True",
+          "todoid": 1
+        }
+      ]
+    }
+  },
+  {
+    "url": "/step_add",
+    "request": {
+      "email": "user@example.com",
+      "todo_id": 1,
+      "stepName": "部署到服务器"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok",
+      "stepUid": "uuid-3333"
+    }
+  },
+  {
+    "url": "/step_del",
+    "request": {
+      "email": "user@example.com",
+      "stepUid": "uuid-3333"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok"
+    }
+  },
+  {
+    "url": "/step_change",
+    "request": {
+      "email": "user@example.com",
+      "stepUid": "uuid-1111",
+      "status": "False"
+    },
+    "response": {
+      "code": 200,
+      "msg": "ok"
+    }
+  }
+]

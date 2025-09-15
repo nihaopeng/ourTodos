@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>主界面</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header>
+  <h1>任务与积分面板</h1>
+  <div>
+    <span id="welcome"></span>
+    <button id="btnLogout">退出</button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>排行榜</h2>
+    <button id="btnRefreshScores">刷新</button>
+    <table>
+      <thead><tr><th>#</th><th>用户名</th><th>邮箱</th><th>积分</th></tr></thead>
+      <tbody id="tableScores"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>待办</h2>
+    <form id="formAddTodo">
+      <input name="todoName" placeholder="标题" required>
+      <input name="todoDescription" placeholder="描述" required>
+      <input type="date" name="ddl" required>
+      <button type="submit">添加</button>
+    </form>
+    <div id="todosList"></div>
+  </section>
+</main>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
