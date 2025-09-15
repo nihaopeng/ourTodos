@@ -15,6 +15,7 @@ class UserManager():
             config["USER"]["USERNAME"] = res["username"]
             config["USER"]["EMAIL"] = email
             config["USER"]["PASSWORD"] = password
+            config["USER"]["TOKEN"] = res["token"]
             setConfig(config)
             return res["username"]
         else:

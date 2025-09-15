@@ -19,6 +19,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     if (result.code === 200) {
         alert("登录成功！");
         // 登录成功后跳转到待办事项页面
+        localStorage.setItem("token", result.token);
         localStorage.setItem("userInfo", JSON.stringify({"email":email,"username":result.username}));
         window.location.href = "todoList.html";
     } else {

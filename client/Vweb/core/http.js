@@ -11,6 +11,7 @@ const baseUrl = 'http://141.11.238.11:5000'; // 替换为你的后端服务器�
 export async function httpRequest(url, method = 'GET', data = null, headers = {}) {
     const defaultHeaders = {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers
     };
 
