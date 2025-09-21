@@ -1,140 +1,40 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>任务与积分面板</title>
-  <link rel="stylesheet" href="./style.css"/>
+<meta charset="UTF-8">
+<title>主界面</title>
+<link rel="stylesheet" href="./css/index.css">
+<link rel="stylesheet" href="./css/loading.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>任务与积分面板</h1>
-    <div class="session">
-      <span id="welcome"></span>
-      <button id="btnShowLogin" class="linklike">登录</button>
-      <button id="btnShowRegister" class="linklike">注册</button>
-      <button id="btnLogout" class="danger hidden">退出登录</button>
+<header>
+  <h1>ourTodos</h1>
+  <div>
+    <span id="welcome"></span>
+    <button id="btnLogout">退出</button>
+    <button id="btnRank">排名</button>
+    <button id="btnSettings">设置</button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>待办</h2>
+    <form id="formAddTodo">
+      <input name="todoName" placeholder="标题" required>
+      <input name="todoDescription" placeholder="描述" required>
+      <input type="date" name="ddl" required>
+      <button type="submit">添加</button>
+    </form>
+    <div id="todosList"></div>
+  </section>
+</main>
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <p>加载中，请稍候...</p>
     </div>
-  </header>
-
-  <main class="container">
-    <section class="panel">
-      <h2>账号与资料</h2>
-      <div class="grid two">
-        <div class="card">
-          <h3>发送验证码</h3>
-          <form id="formSendCode">
-            <label>邮箱<input type="email" name="email" required></label>
-            <button type="submit">发送验证码</button>
-          </form>
-          <pre class="small" id="logSendCode"></pre>
-        </div>
-
-        <div class="card">
-          <h3>注册</h3>
-          <form id="formRegister">
-            <label>用户名<input type="text" name="username" required></label>
-            <label>邮箱<input type="email" name="email" required></label>
-            <label>密码<input type="password" name="password" required></label>
-            <label>验证码<input type="text" name="code" required></label>
-            <button type="submit">注册</button>
-          </form>
-          <pre class="small" id="logRegister"></pre>
-        </div>
-
-        <div class="card">
-          <h3>登录</h3>
-          <form id="formLogin">
-            <label>邮箱<input type="email" name="email" required></label>
-            <label>密码<input type="password" name="password" required></label>
-            <button type="submit">登录</button>
-          </form>
-          <pre class="small" id="logLogin"></pre>
-        </div>
-
-        <div class="card">
-          <h3>更新用户名与密码</h3>
-          <form id="formUpdateUser">
-            <label>新用户名<input type="text" name="username" required></label>
-            <label>新密码<input type="password" name="password" required></label>
-            <button type="submit">更新</button>
-          </form>
-          <pre class="small" id="logUpdateUser"></pre>
-        </div>
-
-        <div class="card">
-          <h3>个人简介</h3>
-          <form id="formSetProfile">
-            <label>简介<textarea name="profile" rows="3" placeholder="例如：热爱编程和旅行"></textarea></label>
-            <button type="submit">保存简介</button>
-          </form>
-          <div class="profile-row">
-            <button id="btnGetProfile">获取简介</button>
-            <span id="currentProfile" class="muted"></span>
-          </div>
-          <pre class="small" id="logProfile"></pre>
-        </div>
-
-        <div class="card">
-          <h3>我的积分</h3>
-          <div class="row">
-            <button id="btnGetMyScore">刷新积分</button>
-            <span id="myScore" class="badge">-</span>
-          </div>
-          <pre class="small" id="logMyScore"></pre>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>排行榜</h2>
-      <div id="scoresBox" class="card">
-        <div class="row">
-          <button id="btnRefreshScores">刷新排行榜</button>
-        </div>
-        <table class="table" id="tableScores">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>用户名</th>
-              <th>邮箱</th>
-              <th>积分</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <pre class="small" id="logScores"></pre>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>待办与步骤</h2>
-
-      <div class="card">
-        <h3>新增待办</h3>
-        <form id="formAddTodo">
-          <label>标题<input type="text" name="todoName" required placeholder="例如：读书"></label>
-          <label>描述<input type="text" name="todoDescription" required placeholder="例如：阅读《三体》50页"></label>
-          <label>截止日期<input type="date" name="ddl" required></label>
-          <button type="submit">添加</button>
-        </form>
-        <pre class="small" id="logAddTodo"></pre>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <button id="btnRefreshTodos">刷新我的待办</button>
-        </div>
-        <div id="todosList"></div>
-        <pre class="small" id="logTodos"></pre>
-      </div>
-    </section>
-  </main>
-
-  <footer class="app-footer">
-    <span>© 2025 任务与积分面板</span>
-  </footer>
-
-  <script type="module" src="./js/main.js"></script>
+  </div>
+<script type="module" src="./js/index.js"></script>
 </body>
 </html>

@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>主界面</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./css/rank.css">
+<link rel="stylesheet" href="./css/loading.css">
 </head>
 <body>
 <header>
   <h1>任务与积分面板</h1>
   <div>
     <span id="welcome"></span>
+    <button id="btnIndex">主页</button>
     <button id="btnLogout">退出</button>
   </div>
 </header>
@@ -23,19 +25,13 @@
       <tbody id="tableScores"></tbody>
     </table>
   </section>
-
-  <section>
-    <h2>待办</h2>
-    <form id="formAddTodo">
-      <input name="todoName" placeholder="标题" required>
-      <input name="todoDescription" placeholder="描述" required>
-      <input type="date" name="ddl" required>
-      <button type="submit">添加</button>
-    </form>
-    <div id="todosList"></div>
-  </section>
 </main>
-
-<script type="module" src="./js/main.js"></script>
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <p>加载中，请稍候...</p>
+    </div>
+</div>
+<script type="module" src="./js/rank.js"></script>
 </body>
 </html>
