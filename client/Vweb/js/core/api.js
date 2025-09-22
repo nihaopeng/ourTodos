@@ -1,5 +1,5 @@
-export const API_BASE = 'http://127.0.0.1:5000';
-// export const API_BASE = 'http://141.11.238.11:5000';
+// export const API_BASE = 'http://127.0.0.1:5000';
+export const API_BASE = 'http://141.11.238.11:5000';
 
 async function request(path, data) {
   const res = await fetch(API_BASE + path, {

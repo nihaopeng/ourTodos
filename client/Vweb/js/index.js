@@ -19,9 +19,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'login.html';
         return;
     }
+    showLoading();
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     todos = await todof.getTodos() || [];
-    console.log(todos);
+    // console.log(todos);
     renderTodos();
+    hideLoading();
 });
 
 form.addEventListener('submit', async (e) => {
