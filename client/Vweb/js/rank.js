@@ -1,6 +1,6 @@
 import { state } from './core/state.js';
 import { getRankings } from './core/rank.js';
-import { api,hideLoading, showLoading } from './core/api.js';
+import { api,hideLoading, showLoading,testSession } from './core/api.js';
 
 const tableBody = document.getElementById('tableScores');
 const btnRefresh = document.getElementById('btnRefreshScores');
@@ -11,6 +11,15 @@ const btnLogout = document.getElementById('btnLogout');
 let users = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!state.session || !state.session.email) {
+        window.location.href = 'login.html';
+        return;
+    }
+    const res = await testSession({"email":state.session.email});
+    if(!res){
+        window.location.href = 'login.html';
+        return;
+    }
     loadRankings();
 });
 

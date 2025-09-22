@@ -118,3 +118,15 @@ input[type="password"] {
     transform: translateY(0);
   }
 }
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 8px;
+}

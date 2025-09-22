@@ -1,5 +1,5 @@
 import { state } from './core/state.js';
-import { api, hideLoading,showLoading } from './core/api.js';
+import { api, hideLoading,showLoading, testSession } from './core/api.js';
 import * as todof from './core/todo.js'
 
 const form = document.getElementById('formAddTodo');
@@ -11,6 +11,11 @@ let todos = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!state.session || !state.session.email) {
+        window.location.href = 'login.html';
+        return;
+    }
+    const res = await testSession({"email":state.session.email});
+    if(!res){
         window.location.href = 'login.html';
         return;
     }
@@ -51,40 +56,53 @@ form.addEventListener('submit', async (e) => {
 });
 
 function renderTodos() {
-    todosList.innerHTML = '';
-    todos.forEach(todo => {
-        const item = document.createElement('div');
-        item.className = 'todo-item';
+  todosList.innerHTML = '';
 
-        item.innerHTML = `
-      <div class="todo-header">
-        <strong>${todo.todoName}</strong> - <em>${todo.ddl}</em>
-        <button onclick="toggleExpand(${todo.todoUid})">${todo.expanded? '展开':'收起'}</button>
-        <button onclick="markComplete(${todo.todoUid})" ${todo.status=="False" ? 'disabled':''}>${todo.status=="False" ? '已完成' : '完成'}</button>
-        <button onclick="deleteTodo(${todo.todoUid})">删除</button>
-      </div>
-        ${todo.expanded ? '':`
-        <div class="todo-details">
+  todos
+    .slice()
+    .sort((a, b) => a.status === "False" ? 1 : -1)
+    .forEach(todo => {
+      const item = document.createElement('div');
+      item.className = 'todo-item';
+
+      const isExpired = new Date(todo.ddl) < new Date();
+
+      item.innerHTML = `
+        <div class="todo-header">
+          <div>
+            <strong style="color: ${isExpired ? 'red' : '#ecf0f1'}">${todo.todoName}</strong> - 
+            <em style="color: ${isExpired ? 'red' : '#ecf0f1'}">${todo.ddl}</em>
+          </div>
+          <div class="todo-actions">
+            <button onclick="toggleExpand(${todo.todoUid})">${todo.expanded ? '展开' : '收起'}</button>
+            <button onclick="markComplete(${todo.todoUid})" ${todo.status == "False" ? 'disabled' : ''}>${todo.status == "False" ? '已完成' : '完成'}</button>
+            <button onclick="deleteTodo(${todo.todoUid})">删除</button>
+          </div>
+        </div>
+        ${todo.expanded ? '' : `
+          <div class="todo-details">
             <p>分数:${todo.score} - ${todo.todoDescription}</p>
             <form onsubmit="addStep(event, ${todo.todoUid})">
-            <input name="step" placeholder="添加步骤" required>
-            <button type="submit">添加步骤</button>
+              <input name="step" placeholder="添加步骤" required>
+              <button type="submit">添加步骤</button>
             </form>
             <ul>
-            ${todo.steps.map((step, index) => `
+              ${todo.steps.map((step, index) => `
                 <li>
-                <span style="text-decoration:${step.status=="False" ? 'line-through' : 'none'}">${step.stepName}</span>
-                <button onclick="toggleStep(${todo.todoUid}, ${index})">${step.status=="False" ? '取消完成' : '完成'}</button>
-                <button onclick="deleteStep(${todo.todoUid}, ${index})">删除</button>
+                  <span style="text-decoration:${step.status == "False" ? 'line-through' : 'none'}">${step.stepName}</span>
+                  <button onclick="toggleStep(${todo.todoUid}, ${index})">${step.status == "False" ? '取消完成' : '完成'}</button>
+                  <button onclick="deleteStep(${todo.todoUid}, ${index})">删除</button>
                 </li>
-            `).join('')}
+              `).join('')}
             </ul>
-        </div>
-      `}
-    `;
-        todosList.appendChild(item);
+          </div>
+        `}
+      `;
+
+      todosList.appendChild(item);
     });
 }
+
 
 window.toggleExpand = function (id) {
     const todo = todos.find(t => t.todoUid === id);

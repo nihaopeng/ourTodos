@@ -1,10 +1,15 @@
-import { api,showLoading,hideLoading } from './core/api.js';
+import { api,showLoading,hideLoading,testSession } from './core/api.js';
 import { state } from './core/state.js';
 
 const btnIndex = document.getElementById("btnIndex");
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!state.session || !state.session.email) {
+        window.location.href = 'login.html';
+        return;
+    }
+    const res1= await testSession({"email":state.session.email});
+    if(!res1){
         window.location.href = 'login.html';
         return;
     }

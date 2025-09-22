@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>主界面</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>排名</title>
 <link rel="stylesheet" href="./css/rank.css">
 <link rel="stylesheet" href="./css/loading.css">
 </head>
@@ -20,10 +21,12 @@
   <section>
     <h2>排行榜</h2>
     <button id="btnRefreshScores">刷新</button>
-    <table>
-      <thead><tr><th>#</th><th>用户名</th><th>邮箱</th><th>积分</th></tr></thead>
-      <tbody id="tableScores"></tbody>
-    </table>
+    <div class="table-wrapper">
+        <table>
+            <thead><tr><th>#</th><th>用户名</th><th>邮箱</th><th>积分</th></tr></thead>
+            <tbody id="tableScores"></tbody>
+        </table>
+    </div>
   </section>
 </main>
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">

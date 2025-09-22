@@ -8,6 +8,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow-x: hidden;
 }
 
 .card {
@@ -15,9 +16,11 @@ body {
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  width: 360px;
   text-align: center;
   animation: fadeIn 1s ease-in-out;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 15px; 
 }
 
 .logo-container {
@@ -58,7 +61,7 @@ form label {
 input[type="text"],
 input[type="password"],
 textarea {
-  width: 100%;
+  width: 93%;
   padding: 10px;
   border: none;
   border-radius: 5px;
@@ -85,4 +88,31 @@ button {
 
 button:hover {
   background-color: #3498db;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  input,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+input,
+textarea,
+button {
+  touch-action: manipulation;
 }

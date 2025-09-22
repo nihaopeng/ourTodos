@@ -135,7 +135,7 @@ def step_add_view():
 def step_del_view():
     data = request.get_json()
     stepUid = data.get("stepUid")
-    # print(stepUid)
+    print(stepUid)
     query_db("DELETE FROM steps where stepUid=?",
                  (stepUid,))
     return jsonify({"code": 200, "msg": "ok"})

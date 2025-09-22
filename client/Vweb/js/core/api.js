@@ -1,5 +1,5 @@
-// export const API_BASE = 'http://127.0.0.1:5000';
-export const API_BASE = 'http://141.11.238.11:5000';
+export const API_BASE = 'http://127.0.0.1:5000';
+// export const API_BASE = 'http://141.11.238.11:5000';
 
 async function request(path, data) {
   const res = await fetch(API_BASE + path, {
@@ -32,6 +32,15 @@ export const api = {
   changeStep: (p) => request('/step_change', p),
   delStep: (p) => request('/step_del', p),
 };
+
+export async function testSession(p) {
+    const res = await api.getProfile(p);
+    if(res.code!=200){
+        return false;
+    }else{
+        return true;
+    }
+}
 
 export function showLoading() {
   document.getElementById('loadingOverlay').style.display = 'flex';
