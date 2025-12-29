@@ -16,10 +16,11 @@
 - 用户注册：邮箱验证，密码加密存储，注册表单图标为钥匙+用户轮廓
 - 用户登录：邮箱+密码登录，记住登录状态，登录失败提示，门锁打开状态图标
 - 忘记密码：邮箱重置，24小时有效期，重置后强制重新登录，钥匙+问号组合图标
+- 用户角色：普通用户、管理员，角色标识，管理员拥有额外权限
 
 ### 2.2 待办事项核心功能
 - 创建待办：标题、描述、截止时间、关联分组、优先级标签，自动AI评分，圆形加号渐变绿色添加按钮
-- 评分标准管理：自定义评分标准JSON配置，预设模板，滑块+权重调整界面，天平+星星组合图标
+- 评分标准管理：管理员专属功能，自定义评分标准JSON配置，预设模板，滑块+权重调整界面，天平+星星组合图标
 - 待办列表视图：标题、倒计时、待办分数、完成状态，多种排序选项，颜色分级显示状态
 - 待办编辑与删除：修改所有字段重新评分，二次确认删除，批量操作，铅笔（编辑）、垃圾桶（删除）图标
 
@@ -87,14 +88,26 @@
 ### 5.2 数据模型关键表
 ```sql
 -- 用户表
-Users (id, email, username, password_hash, total_points, created_at)\n
+Users (id, email, username, password_hash, total_points, role, created_at)\n
 -- 待办事项表
-Todos (id, user_id, title, description, due_date, score, status, \n       group_id, created_at, completed_at)\n
+Todos (id, user_id, title, description, due_date, score, status, group_id, created_at, completed_at)\n
 -- 评分标准表
-ScoringCriteria (id, user_id, criteria_json, is_default, created_at)\n
+ScoringCriteria (id, criteria_json, is_default, created_at)\n
 -- 分组表
 Groups (id, user_id, name, color, order_index)\n
 -- 积分历史表
 PointsHistory (id, user_id, points, source_type, source_id, created_at)\n
 -- 月排行榜快照
-MonthlyRankings (id, year_month, user_id, rank, points, awarded_at)\n```
+MonthlyRankings (id, year_month, user_id, rank, points, awarded_at)\n```\n
+## 6. 权限管理
+
+### 6.1 角色定义
+- 普通用户：可创建/管理个人待办、查看积分、参与排行榜
+- 管理员：除普通用户权限外，还可管理评分标准、配置奖励邮件、查看系统数据
+
+### 6.2 功能权限映射
+- 评分标准管理：仅管理员可访问
+- 待办事项管理：仅限本人创建的待办
+- 积分系统：所有用户可见
+- 排行榜：公开展示，所有用户可查看
+- 月度奖励邮件：管理员配置，获奖用户接收

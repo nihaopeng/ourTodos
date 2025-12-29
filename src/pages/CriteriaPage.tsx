@@ -23,7 +23,7 @@ import AddCriteriaDialog from '@/components/AddCriteriaDialog';
 import EditCriteriaDialog from '@/components/EditCriteriaDialog';
 
 export default function CriteriaPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [criteria, setCriteria] = useState<ScoringCriteria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,8 @@ export default function CriteriaPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCriteria, setSelectedCriteria] = useState<ScoringCriteria | null>(null);
+
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
     loadCriteria();
@@ -100,13 +102,39 @@ export default function CriteriaPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold gradient-text mb-2">评分标准管理</h1>
-            <p className="text-muted-foreground">自定义AI评分标准，让评分更符合您的需求</p>
+            <p className="text-muted-foreground">
+              {isAdmin 
+                ? '自定义AI评分标准，让评分更符合您的需求' 
+                : '查看AI评分标准，了解任务评分规则'
+              }
+            </p>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            添加标准
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              添加标准
+            </Button>
+          )}
         </div>
+
+        {/* 非管理员提示 */}
+        {!isAdmin && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Scale className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1">仅管理员可编辑</h3>
+                  <p className="text-sm text-muted-foreground">
+                    评分标准由管理员统一管理，以确保评分的一致性和公平性。如需修改评分标准，请联系管理员。
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* 评分标准列表 */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -132,12 +160,17 @@ export default function CriteriaPage() {
                 </div>
                 <h3 className="text-lg font-medium mb-2">暂无评分标准</h3>
                 <p className="text-muted-foreground mb-4">
-                  创建您的第一个评分标准，自定义AI评分规则
+                  {isAdmin 
+                    ? '创建您的第一个评分标准，自定义AI评分规则' 
+                    : '管理员尚未创建评分标准，请联系管理员添加'
+                  }
                 </p>
-                <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  添加标准
-                </Button>
+                {isAdmin && (
+                  <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    添加标准
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -159,30 +192,32 @@ export default function CriteriaPage() {
                         {getCriteriaWeights(item.criteria_json).length} 个评分维度
                       </CardDescription>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedCriteria(item);
-                          setEditDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      {!item.is_default && (
+                    {isAdmin && (
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => {
                             setSelectedCriteria(item);
-                            setDeleteDialogOpen(true);
+                            setEditDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="w-4 h-4 text-destructive" />
+                          <Pencil className="w-4 h-4" />
                         </Button>
-                      )}
-                    </div>
+                        {!item.is_default && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedCriteria(item);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -242,35 +277,39 @@ export default function CriteriaPage() {
         </Card>
       </div>
 
-      <AddCriteriaDialog
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-        onSuccess={loadCriteria}
-      />
+      {isAdmin && (
+        <>
+          <AddCriteriaDialog
+            open={addDialogOpen}
+            onOpenChange={setAddDialogOpen}
+            onSuccess={loadCriteria}
+          />
 
-      {selectedCriteria && (
-        <EditCriteriaDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          criteria={selectedCriteria}
-          onSuccess={loadCriteria}
-        />
+          {selectedCriteria && (
+            <EditCriteriaDialog
+              open={editDialogOpen}
+              onOpenChange={setEditDialogOpen}
+              criteria={selectedCriteria}
+              onSuccess={loadCriteria}
+            />
+          )}
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认删除</AlertDialogTitle>
+                <AlertDialogDescription>
+                  确定要删除评分标准"{selectedCriteria?.name}"吗？此操作无法撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       )}
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>
-              确定要删除评分标准"{selectedCriteria?.name}"吗？此操作无法撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </MainLayout>
   );
 }
