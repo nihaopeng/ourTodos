@@ -4,16 +4,20 @@ import MainLayout from '@/components/layouts/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ListTodo, CheckCircle2, Clock } from 'lucide-react';
-import { getTodos, getStatistics } from '@/db/api';
-import type { Todo, Statistics } from '@/types/types';
+import { Badge } from '@/components/ui/badge';
+import { Plus, ListTodo, CheckCircle2, Clock, X } from 'lucide-react';
+import { getTodos, getStatistics, getGroups } from '@/db/api';
+import type { Todo, Statistics, Group } from '@/types/types';
 import TodoCard from '@/components/TodoCard';
 import AddTodoDialog from '@/components/AddTodoDialog';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
@@ -22,12 +26,14 @@ export default function DashboardPage() {
 
     try {
       setLoading(true);
-      const [todosData, statsData] = await Promise.all([
+      const [todosData, statsData, groupsData] = await Promise.all([
         getTodos(user.id, 'pending'),
         getStatistics(user.id),
+        getGroups(user.id),
       ]);
       setTodos(todosData);
       setStatistics(statsData);
+      setGroups(groupsData);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -39,6 +45,15 @@ export default function DashboardPage() {
     loadData();
   }, [user]);
 
+  // 根据选中的分组筛选待办
+  useEffect(() => {
+    if (selectedGroupId === null) {
+      setFilteredTodos(todos);
+    } else {
+      setFilteredTodos(todos.filter(todo => todo.group_id === selectedGroupId));
+    }
+  }, [todos, selectedGroupId]);
+
   const handleTodoAdded = () => {
     loadData();
   };
@@ -47,8 +62,18 @@ export default function DashboardPage() {
     loadData();
   };
 
+  const handleGroupSelect = (groupId: string) => {
+    setSelectedGroupId(groupId);
+  };
+
+  const handleClearFilter = () => {
+    setSelectedGroupId(null);
+  };
+
+  const selectedGroup = groups.find(g => g.id === selectedGroupId);
+
   return (
-    <MainLayout>
+    <MainLayout onGroupSelect={handleGroupSelect} selectedGroupId={selectedGroupId}>
       <div className="space-y-6">
         {/* 统计卡片 */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -126,8 +151,31 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>我的待办事项</CardTitle>
-                <CardDescription>管理您的任务并获得积分奖励</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  我的待办事项
+                  {selectedGroup && (
+                    <Badge 
+                      variant="outline" 
+                      style={{ borderColor: selectedGroup.color }}
+                      className="ml-2"
+                    >
+                      <span style={{ color: selectedGroup.color }}>●</span>
+                      <span className="ml-1">{selectedGroup.name}</span>
+                      <button
+                        onClick={handleClearFilter}
+                        className="ml-2 hover:bg-muted rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {selectedGroup 
+                    ? `显示"${selectedGroup.name}"分组的任务` 
+                    : '管理您的任务并获得积分奖励'
+                  }
+                </CardDescription>
               </div>
               <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
                 <Plus className="w-4 h-4" />
@@ -145,14 +193,19 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : todos.length === 0 ? (
+            ) : filteredTodos.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
                   <ListTodo className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">暂无待办事项</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  {selectedGroup ? `"${selectedGroup.name}"分组暂无待办事项` : '暂无待办事项'}
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  创建您的第一个待办事项，开始获得积分吧！
+                  {selectedGroup 
+                    ? '在此分组中创建待办事项，开始获得积分吧！' 
+                    : '创建您的第一个待办事项，开始获得积分吧！'
+                  }
                 </p>
                 <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
                   <Plus className="w-4 h-4" />
@@ -161,7 +214,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {todos.map((todo) => (
+                {filteredTodos.map((todo) => (
                   <TodoCard key={todo.id} todo={todo} onUpdate={handleTodoUpdated} />
                 ))}
               </div>
