@@ -51,7 +51,10 @@ export default function LeaderboardPage() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-3xl font-bold gradient-text mb-2">排行榜</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <img src="/images/rank.png" alt="排行榜" className="w-12 h-12" />
+            <h1 className="text-3xl font-bold gradient-text">排行榜</h1>
+          </div>
           <p className="text-muted-foreground">查看积分排名，激励自己不断进步</p>
         </div>
 

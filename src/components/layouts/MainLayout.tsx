@@ -72,8 +72,8 @@ export default function MainLayout({ children, onGroupSelect, selectedGroupId }:
     <div className="flex flex-col h-full">
       <div className="p-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-2xl">✓⭐</span>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <img src="/images/score.png" alt="Logo" className="w-10 h-10" />
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-lg gradient-text">待办评分</span>
@@ -150,7 +150,7 @@ export default function MainLayout({ children, onGroupSelect, selectedGroupId }:
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{profile?.username || '用户'}</p>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Coins className="w-3 h-3" />
+              <img src="/images/coins.png" alt="积分" className="w-3 h-3" />
               <span>{profile?.total_points || 0} 积分</span>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function MainLayout({ children, onGroupSelect, selectedGroupId }:
 
             {/* 积分显示 */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
-              <Coins className="w-4 h-4" />
+              <img src="/images/coins.png" alt="积分" className="w-5 h-5" />
               <span className="text-sm font-medium">{profile?.total_points || 0}</span>
             </div>
 

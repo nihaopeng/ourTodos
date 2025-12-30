@@ -105,9 +105,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md shadow-primary">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center">
-              <span className="text-4xl">✓⭐</span>
-            </div>
+            <img src="/images/score.png" alt="Logo" className="w-16 h-16" />
           </div>
           <CardTitle className="text-2xl text-center gradient-text">创建新账户</CardTitle>
           <CardDescription className="text-center">

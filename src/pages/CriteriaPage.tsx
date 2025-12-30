@@ -101,7 +101,10 @@ export default function CriteriaPage() {
         {/* 页面标题 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold gradient-text mb-2">评分标准管理</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/images/brain.png" alt="AI评分" className="w-12 h-12" />
+              <h1 className="text-3xl font-bold gradient-text">评分标准管理</h1>
+            </div>
             <p className="text-muted-foreground">
               {isAdmin 
                 ? '自定义AI评分标准，让评分更符合您的需求' 
