@@ -152,28 +152,36 @@ class FocusApp(QMainWindow):
         self.btn_start.clicked.connect(self.start_session)
         self.btn_start.setMinimumHeight(35)
         control_layout.addWidget(self.btn_start)
+        
+        self.btn_pause = QPushButton("暂停")
+        self.btn_pause.clicked.connect(self.pause_session)
+        self.btn_pause.setMinimumHeight(35)
+        self.btn_pause.setEnabled(False)
+        control_layout.addWidget(self.btn_pause)
+        
+        self.btn_restart = QPushButton("重新计时")
+        self.btn_restart.clicked.connect(self.restart_session)
+        self.btn_restart.setMinimumHeight(35)
+        self.btn_restart.setEnabled(False)
+        control_layout.addWidget(self.btn_restart)
+        
         timer_layout.addLayout(control_layout)
         
         top_layout.addWidget(timer_frame)
         
-        # 数据分析按钮（紧凑布局）
+        # 数据分析按钮（合并为一个）
         stats_frame = QFrame()
         stats_frame.setObjectName("card")
-        stats_layout = QHBoxLayout(stats_frame)  # 改为水平布局
+        stats_layout = QHBoxLayout(stats_frame)
         
         stats_title = QLabel("数据分析:")
         stats_title.setObjectName("section_title")
         stats_layout.addWidget(stats_title)
         
-        self.btn_daily_stats = QPushButton("工作统计")
-        self.btn_daily_stats.clicked.connect(self.show_daily_stats)
-        self.btn_daily_stats.setMinimumHeight(30)
-        stats_layout.addWidget(self.btn_daily_stats)
-        
-        self.btn_productivity = QPushButton("生产力总结")
-        self.btn_productivity.clicked.connect(self.show_productivity_summary)
-        self.btn_productivity.setMinimumHeight(30)
-        stats_layout.addWidget(self.btn_productivity)
+        self.btn_visualization = QPushButton("可视化分析")
+        self.btn_visualization.clicked.connect(self.show_visualization)
+        self.btn_visualization.setMinimumHeight(30)
+        stats_layout.addWidget(self.btn_visualization)
         
         top_layout.addWidget(stats_frame)
         
@@ -619,34 +627,6 @@ class FocusApp(QMainWindow):
         except:
             return 0
 
-
-
-    def show_daily_stats(self):
-        """显示每日工作统计"""
-        try:
-            # 动态导入PlotlyVisualizer
-            from plotly_visualizer import PlotlyVisualizer
-            visualizer = PlotlyVisualizer()
-            result = visualizer.show_daily_work_chart(30)
-            self.status_label.setText("工作统计图表已在浏览器中打开")
-        except ImportError as e:
-            QMessageBox.warning(self, "错误", f"无法加载Plotly可视化模块: {str(e)}\n请安装: pip install plotly pandas")
-        except Exception as e:
-            QMessageBox.warning(self, "错误", f"显示工作统计失败: {str(e)}")
-    
-    def show_productivity_summary(self):
-        """显示生产力总结"""
-        try:
-            # 动态导入PlotlyVisualizer
-            from plotly_visualizer import PlotlyVisualizer
-            visualizer = PlotlyVisualizer()
-            result = visualizer.show_productivity_summary()
-            self.status_label.setText("生产力总结已在浏览器中打开")
-        except ImportError as e:
-            QMessageBox.warning(self, "错误", f"无法加载Plotly可视化模块: {str(e)}\n请安装: pip install plotly pandas")
-        except Exception as e:
-            QMessageBox.warning(self, "错误", f"显示生产力总结失败: {str(e)}")
-
     def start_session(self):
         if self.is_work_mode:
             title = "设置工作时间"
@@ -664,10 +644,13 @@ class FocusApp(QMainWindow):
             # 重新加载样式，确保样式不丢失
             self.reload_styles()
             
-            # 禁用模式切换和开始按钮
+            # 禁用模式切换和开始按钮，启用暂停和重新计时按钮
             self.work_mode_btn.setEnabled(False)
             self.rest_mode_btn.setEnabled(False)
             self.btn_start.setEnabled(False)
+            self.btn_pause.setEnabled(True)
+            self.btn_pause.setText("暂停")
+            self.btn_restart.setEnabled(True)
             
             if self.is_work_mode:
                 self.btn_start.setText("工作中...")
@@ -679,8 +662,35 @@ class FocusApp(QMainWindow):
                 self.status_label.setText(f"休息开始: {mins}分钟")
                 # 更新托盘图标提示
                 self.tray_icon.setToolTip(f"休息中 - 剩余{mins}分钟")
-
+    
+    def pause_session(self):
+        """暂停或继续计时"""
+        if self.timer.isActive():
+            # 暂停计时
+            self.timer.stop()
+            self.btn_pause.setText("继续")
+            self.status_label.setText("计时已暂停")
+            
+            # 更新托盘提示
+            if self.is_work_mode:
+                self.tray_icon.setToolTip(f"工作中 - 已暂停")
+            else:
+                self.tray_icon.setToolTip(f"休息中 - 已暂停")
+        else:
+            # 继续计时
+            self.timer.start(1000)
+            self.btn_pause.setText("暂停")
+            self.status_label.setText("计时已继续")
+            
+            # 更新托盘提示
+            m, s = divmod(self.remaining_time, 60)
+            if self.is_work_mode:
+                self.tray_icon.setToolTip(f"工作中 - 剩余{m:02d}:{s:02d}")
+            else:
+                self.tray_icon.setToolTip(f"休息中 - 剩余{m:02d}:{s:02d}")
+    
     def update_timer(self):
+        """更新计时器显示"""
         if self.remaining_time > 0:
             self.remaining_time -= 1
             m, s = divmod(self.remaining_time, 60)
@@ -698,7 +708,60 @@ class FocusApp(QMainWindow):
         else:
             self.timer.stop()
             self.finalize_session()
-
+    
+    def restart_session(self):
+        """重新计时，记录已完成的时间段"""
+        if not self.timer.isActive() and self.remaining_time < self.current_duration * 60:
+            # 计算已完成的时间
+            elapsed_seconds = (self.current_duration * 60) - self.remaining_time
+            elapsed_minutes = elapsed_seconds // 60
+            
+            if elapsed_minutes > 0:
+                # 记录已完成的时间段到数据库
+                try:
+                    if self.is_work_mode:
+                        # 工作模式：统计完成的步骤
+                        done_count = 0
+                        for i in range(self.tree.topLevelItemCount()):
+                            item = self.tree.topLevelItem(i)
+                            if item:
+                                child_count = item.childCount()
+                                for j in range(child_count):
+                                    child = item.child(j)
+                                    if child and child.checkState(0) == Qt.CheckState.Checked:
+                                        done_count += 1
+                        
+                        self.db_cursor.execute(
+                            "INSERT INTO history (timestamp, duration, tasks_done_count) VALUES (?, ?, ?)", 
+                            (datetime.now(), elapsed_minutes, done_count)
+                        )
+                        self.conn.commit()
+                        self.status_label.setText(f"已记录 {elapsed_minutes} 分钟工作，完成 {done_count} 个步骤")
+                    else:
+                        # 休息模式：只记录时长
+                        self.db_cursor.execute(
+                            "INSERT INTO history (timestamp, duration, tasks_done_count) VALUES (?, ?, ?)", 
+                            (datetime.now(), elapsed_minutes, 0)
+                        )
+                        self.conn.commit()
+                        self.status_label.setText(f"已记录 {elapsed_minutes} 分钟休息")
+                except Exception as e:
+                    QMessageBox.warning(self, "错误", f"记录时间段失败: {str(e)}")
+            
+            # 重新开始计时
+            self.remaining_time = self.current_duration * 60
+            self.timer.start(1000)
+            self.btn_pause.setText("暂停")
+            self.btn_restart.setEnabled(True)
+            self.status_label.setText("已重新开始计时")
+            
+            # 更新托盘提示
+            m, s = divmod(self.remaining_time, 60)
+            if self.is_work_mode:
+                self.tray_icon.setToolTip(f"工作中 - 剩余{m:02d}:{s:02d}")
+            else:
+                self.tray_icon.setToolTip(f"休息中 - 剩余{m:02d}:{s:02d}")
+    
     def finalize_session(self):
         """倒计时结束：统计并持久化"""
         if self.is_work_mode:
@@ -819,6 +882,9 @@ class FocusApp(QMainWindow):
         self.work_mode_btn.setEnabled(True)
         self.rest_mode_btn.setEnabled(True)
         self.btn_start.setEnabled(True)
+        self.btn_pause.setEnabled(False)
+        self.btn_pause.setText("暂停")
+        self.btn_restart.setEnabled(False)
         
         # 恢复托盘提示
         if self.is_work_mode:
@@ -827,6 +893,45 @@ class FocusApp(QMainWindow):
         else:
             self.btn_start.setText("开始休息")
             self.tray_icon.setToolTip("休息模式就绪")
+    
+    def show_visualization(self):
+        """显示综合图表"""
+        try:
+            # 创建进度对话框
+            from PySide6.QtWidgets import QProgressDialog
+            from PySide6.QtCore import Qt
+            
+            progress = QProgressDialog("正在生成综合图表...", "取消", 0, 100, self)
+            progress.setWindowTitle("图表生成中")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.setValue(10)
+            
+            # 动态导入PlotlyVisualizer
+            from plotly_visualizer import PlotlyVisualizer
+            progress.setValue(30)
+            
+            visualizer = PlotlyVisualizer()
+            progress.setValue(50)
+            
+            # 使用QTimer延迟执行，让进度条可见
+            from PySide6.QtCore import QTimer
+            def generate_chart():
+                try:
+                    result = visualizer.show_comprehensive_chart(30)
+                    progress.setValue(100)
+                    progress.close()
+                    self.status_label.setText("综合图表已在浏览器中打开")
+                except Exception as e:
+                    progress.close()
+                    QMessageBox.warning(self, "错误", f"生成综合图表失败: {str(e)}")
+            
+            QTimer.singleShot(100, generate_chart)
+            
+        except ImportError as e:
+            QMessageBox.warning(self, "错误", f"无法加载Plotly可视化模块: {str(e)}\n请安装: pip install plotly pandas")
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"显示综合图表失败: {str(e)}")
 
     def toggle_ontop(self, state):
         flags = self.windowFlags()
