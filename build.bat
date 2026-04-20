@@ -1,0 +1,1 @@
+pyinstaller --onefile --windowed --name SmartTodo --icon=data/fig/work.ico --add-data "data/fig/work.png;." --add-data "data/fig/rest.png;." --add-data "data/fig/work.ico;." --add-data "data/fig/style.css;." main.py

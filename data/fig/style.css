@@ -1,0 +1,204 @@
+/* 基础样式 - 现代化设计 */
+QWidget {
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* 主窗口样式 */
+QMainWindow {
+    background-color: #f8f9fa;
+}
+
+/* 计时器显示 */
+QLabel#timer_display {
+    font-size: 64px;
+    font-weight: 900;
+    color: #2c3e50;
+    padding: 8px;
+    border-radius: 10px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e9ecef;
+    min-width: 200px;
+}
+
+/* 待办列表样式 */
+QTreeWidget {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background-color: white;
+    font-size: 14px;
+    padding: 5px;
+}
+
+QTreeWidget::item {
+    height: 40px;
+    padding: 5px;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+QTreeWidget::item:selected {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+QTreeWidget::item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 按钮样式 - 现代化设计 */
+QPushButton {
+    background-color: #4dabf7;
+    color: white;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    min-height: 35px;
+}
+
+QPushButton:hover {
+    background-color: #339af0;
+}
+
+QPushButton:pressed {
+    background-color: #1c7ed6;
+}
+
+/* 添加任务按钮特殊样式 */
+QPushButton#add_task_btn {
+    background-color: #40c057;
+}
+
+QPushButton#add_task_btn:hover {
+    background-color: #37b24d;
+}
+
+/* 删除按钮样式 */
+QPushButton#delete_btn {
+    background-color: #fa5252;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+QPushButton#delete_btn:hover {
+    background-color: #e03131;
+}
+
+/* 复选框样式 */
+QCheckBox {
+    spacing: 8px;
+    font-size: 14px;
+    padding: 5px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #adb5bd;
+    border-radius: 4px;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #4dabf7;
+    border-color: #4dabf7;
+    image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+}
+
+/* 单选按钮样式 */
+QRadioButton {
+    spacing: 10px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+QRadioButton:hover {
+    background-color: #f8f9fa;
+}
+
+QRadioButton::indicator {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #adb5bd;
+    border-radius: 10px;
+}
+
+QRadioButton::indicator:checked {
+    background-color: #4dabf7;
+    border-color: #4dabf7;
+}
+
+QRadioButton::indicator:checked:hover {
+    background-color: #339af0;
+    border-color: #339af0;
+}
+
+/* 进度条样式 */
+QProgressBar {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+    background-color: #f8f9fa;
+    height: 20px;
+}
+
+QProgressBar::chunk {
+    background-color: #4dabf7;
+    border-radius: 4px;
+}
+
+/* 输入对话框样式 */
+QInputDialog {
+    background-color: white;
+    border-radius: 10px;
+}
+
+/* 系统托盘菜单样式 */
+QMenu {
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+QMenu::item {
+    padding: 8px 20px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+/* 卡片样式 */
+QFrame#card {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    margin: 5px;
+}
+
+/* 标签样式 */
+QLabel#section_title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+/* 结束时的提醒样式 */
+.AlarmMode {
+    background-color: #fff5f5;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { background-color: #fff5f5; }
+    50% { background-color: #ffe3e3; }
+    100% { background-color: #fff5f5; }
+}
